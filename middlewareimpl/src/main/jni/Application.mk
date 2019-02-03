@@ -1,0 +1,1 @@
+APP_MODULES:= hdcp_jni
