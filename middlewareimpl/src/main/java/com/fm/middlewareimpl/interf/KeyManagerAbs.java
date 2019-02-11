@@ -9,13 +9,13 @@ public abstract class KeyManagerAbs extends BaseMiddleware {
         super(context);
     }
 
-    public abstract boolean writeHDCP_RX_14(byte[] datas);
+    public abstract boolean writeHDCP_RX_14(String datas);
 
-    public abstract boolean writeHDCP_RX_22(byte[] datas);
+    public abstract boolean writeHDCP_RX_22(String datas);
 
-    public abstract boolean writeHDCP_TX_14(byte[] datas);
+    public abstract boolean writeHDCP_TX_14(String datas);
 
-    public abstract boolean writeHDCP_TX_22(byte[] datas);
+    public abstract boolean writeHDCP_TX_22(String datas);
 
     public abstract byte[] readHDCP_RX_14();
 
