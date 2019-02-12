@@ -120,7 +120,7 @@ public class FactoryLauncher extends Activity {
                 if (keyManager == null){
                     keyManager = new KeyManagerImpl(this);
                 }
-                Log.i(TAG, "setImgPath   " + keyManager.setImgPath(""));
+                //Log.i(TAG, "setImgPath   " + keyManager.setImgPath(""));
                 break;
             case 20:
                 break;

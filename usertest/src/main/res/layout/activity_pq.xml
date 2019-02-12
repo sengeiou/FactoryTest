@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#686767"
+    tools:context=".PQActivity">
+
+    <LinearLayout
+        android:id="@+id/ll_offset"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal">
+
+        <com.fengmi.usertest.views.PQRegulatorView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:pq_type="R_offset">
+
+        </com.fengmi.usertest.views.PQRegulatorView>
+
+        <com.fengmi.usertest.views.PQRegulatorView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:pq_type="G_offset">
+
+        </com.fengmi.usertest.views.PQRegulatorView>
+
+        <com.fengmi.usertest.views.PQRegulatorView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:pq_type="B_offset">
+
+        </com.fengmi.usertest.views.PQRegulatorView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/ll_gain"
+        android:layout_below="@id/ll_offset"
+        android:layout_centerInParent="true"
+        android:orientation="horizontal">
+
+        <RadioGroup
+            android:id="@+id/rg_color_temp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center|left">
+
+            <RadioButton
+                android:id="@+id/rb_color_cold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="冷色温" />
+
+            <RadioButton
+                android:id="@+id/rb_color_normal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="标准色温" />
+
+            <RadioButton
+                android:id="@+id/rb_color_warm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="暖色温" />
+        </RadioGroup>
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="8"
+            android:background="#fff" />
+
+        <RadioGroup
+            android:id="@+id/rg_adjust"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center|left">
+
+            <RadioButton
+                android:id="@+id/rb_adjust_max"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="粗调" />
+
+            <RadioButton
+                android:id="@+id/rb_adjust_min"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="微调" />
+        </RadioGroup>
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/ll_gain"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <com.fengmi.usertest.views.PQRegulatorView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:pq_type="R_gain">
+
+        </com.fengmi.usertest.views.PQRegulatorView>
+
+        <com.fengmi.usertest.views.PQRegulatorView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:pq_type="G_gain">
+
+        </com.fengmi.usertest.views.PQRegulatorView>
+
+        <com.fengmi.usertest.views.PQRegulatorView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:pq_type="B_gain">
+
+        </com.fengmi.usertest.views.PQRegulatorView>
+    </LinearLayout>
+
+</RelativeLayout>
