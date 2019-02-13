@@ -8,14 +8,17 @@ import com.fm.factorytest.utils.ShellUtil;
 
 public class TemperatureHelper {
     private static final String CONAN = "conan";
+    private static final String ANGLEE = "anglee";
+    private static final String BATMAN = "batman";
+    private static final String EVA = "eva";
     private static final String FM10_HEAD = "fm10";
 
     private static String[] getTemperatureTitles() {
         String[] temperatureTitles = null;
         String hwVersion = SystemProperties.get("ro.boot.hardware_version", " ");
-        if (Build.DEVICE.equals(CONAN)) {
+        if (Build.DEVICE.equals(CONAN) || Build.DEVICE.equals(EVA)) {
             temperatureTitles = new String[]{"红光温度\t\t", "绿光温度\t\t", "环境温度\t\t"};
-        } else {
+        } else if (Build.DEVICE.equals(BATMAN) || Build.DEVICE.equals(ANGLEE)) {
             if (hwVersion.contains(FM10_HEAD)) {
                 temperatureTitles = new String[]{"环境温度\t\t", "色轮温度\t\t", "光源温度\t\t"};
             } else {
@@ -28,7 +31,7 @@ public class TemperatureHelper {
 
     public static TemperatureData queryTemperature() {
         String hwVersion = SystemProperties.get("ro.boot.hardware_version", " ");
-        if (Build.DEVICE.equals(CONAN)) {
+        if (Build.DEVICE.equals(CONAN) || Build.DEVICE.equals(EVA)) {
             return queryConanTemperature();
         } else {
             if (hwVersion.contains(FM10_HEAD)) {
