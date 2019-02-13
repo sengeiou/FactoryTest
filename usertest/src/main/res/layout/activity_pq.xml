@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#686767"
+    android:background="#DFDEDE"
     tools:context=".PQActivity">
 
     <LinearLayout
@@ -12,10 +12,11 @@
         android:layout_width="match_parent"
         android:layout_height="130dp"
         android:layout_alignParentTop="true"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <com.fengmi.usertest.views.PQRegulatorView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             app:pq_type="R_offset">
@@ -23,7 +24,7 @@
         </com.fengmi.usertest.views.PQRegulatorView>
 
         <com.fengmi.usertest.views.PQRegulatorView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             app:pq_type="G_offset">
@@ -31,7 +32,7 @@
         </com.fengmi.usertest.views.PQRegulatorView>
 
         <com.fengmi.usertest.views.PQRegulatorView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             app:pq_type="B_offset">
@@ -77,7 +78,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="8"
-            android:background="#fff" />
+            android:background="#FFFFFF" />
 
         <RadioGroup
             android:id="@+id/rg_adjust"
@@ -106,10 +107,11 @@
         android:layout_width="match_parent"
         android:layout_height="130dp"
         android:layout_alignParentBottom="true"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <com.fengmi.usertest.views.PQRegulatorView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             app:pq_type="R_gain">
@@ -117,7 +119,7 @@
         </com.fengmi.usertest.views.PQRegulatorView>
 
         <com.fengmi.usertest.views.PQRegulatorView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             app:pq_type="G_gain">
@@ -125,7 +127,7 @@
         </com.fengmi.usertest.views.PQRegulatorView>
 
         <com.fengmi.usertest.views.PQRegulatorView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             app:pq_type="B_gain">

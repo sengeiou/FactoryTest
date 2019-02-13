@@ -3,9 +3,14 @@ package com.fengmi.usertest;
 import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 public class PQActivity extends Activity {
+    private static final String TAG = "PQActivity";
+
     private RadioGroup rgColorTemp;
     private RadioGroup rgColorAdjust;
 
@@ -59,5 +64,16 @@ public class PQActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         PQUtil.clearListener();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        Log.d(TAG,"getKeyCode :: " + event.getKeyCode());
+        if ((event.getKeyCode() == KeyEvent.KEYCODE_MENU) && (event.getAction()==KeyEvent.ACTION_UP)){
+            boolean res = picModeManager.picTransPQDataToDB();
+            Toast.makeText(this,"数据保存" + (res?"成功！":"失败！"),Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 }
