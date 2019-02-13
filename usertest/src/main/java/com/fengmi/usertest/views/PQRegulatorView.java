@@ -5,13 +5,12 @@ import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.fengmi.usertest.IRadioCheckListener;
-import com.fengmi.usertest.PQUtil;
+import com.fengmi.usertest.Util;
 import com.fengmi.usertest.PicModeManagerImpl;
 import com.fengmi.usertest.R;
 
@@ -38,7 +37,7 @@ public class PQRegulatorView extends RelativeLayout implements IRadioCheckListen
 
     public PQRegulatorView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        PQUtil.addCheckListener(this);
+        Util.addCheckListener(this);
 
         picModeManager = new PicModeManagerImpl(getContext());
         initView();
@@ -93,14 +92,14 @@ public class PQRegulatorView extends RelativeLayout implements IRadioCheckListen
 
     private void pqIncrease() {
         int val = queryPQValue(pqType);
-        val+= PQUtil.PQ_ADJUST_STEP;
+        val+= Util.PQ_ADJUST_STEP;
         Log.d(TAG,"pqIncrease :: "+val);
         setPQValue(pqType, val);
     }
 
     private void pqDecrease() {
         int val = queryPQValue(pqType);
-        val-=PQUtil.PQ_ADJUST_STEP;
+        val-= Util.PQ_ADJUST_STEP;
         Log.d(TAG,"pqDecrease :: "+val);
         setPQValue(pqType, val);
     }

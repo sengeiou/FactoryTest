@@ -1,12 +1,15 @@
-package com.fengmi.usertest;
+package com.fengmi.usertest.activitys;
 
 import android.app.Activity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.RadioGroup;
 import android.widget.Toast;
+
+import com.fengmi.usertest.Util;
+import com.fengmi.usertest.PicModeManagerImpl;
+import com.fengmi.usertest.R;
 
 public class PQActivity extends Activity {
     private static final String TAG = "PQActivity";
@@ -30,15 +33,15 @@ public class PQActivity extends Activity {
                 switch (i){
                     case R.id.rb_color_cold:
                         picModeManager.picSetColorTemp(0);
-                        PQUtil.notifyListeners();
+                        Util.notifyListeners();
                         break;
                     case R.id.rb_color_normal:
                         picModeManager.picSetColorTemp(1);
-                        PQUtil.notifyListeners();
+                        Util.notifyListeners();
                         break;
                     case R.id.rb_color_warm:
                         picModeManager.picSetColorTemp(2);
-                        PQUtil.notifyListeners();
+                        Util.notifyListeners();
                         break;
                 }
             }
@@ -48,10 +51,10 @@ public class PQActivity extends Activity {
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 switch (i){
                     case R.id.rb_adjust_max:
-                        PQUtil.PQ_ADJUST_STEP = 20;
+                        Util.PQ_ADJUST_STEP = 20;
                         break;
                     case R.id.rb_adjust_min:
-                        PQUtil.PQ_ADJUST_STEP = 1;
+                        Util.PQ_ADJUST_STEP = 1;
                         break;
                 }
             }
@@ -63,7 +66,7 @@ public class PQActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        PQUtil.clearListener();
+        Util.clearListener();
     }
 
     @Override
