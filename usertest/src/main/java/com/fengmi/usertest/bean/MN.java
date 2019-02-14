@@ -5,12 +5,12 @@ import android.text.TextUtils;
 import lee.hua.xmlparse.annotation.XmlAttribute;
 import lee.hua.xmlparse.annotation.XmlBean;
 
-@XmlBean(name = "manufacture")
+@XmlBean
 public class MN {
-    @XmlAttribute(name = "product")
+    @XmlAttribute
     private String product = "";
 
-    @XmlAttribute(name = "manufacture")
+    @XmlAttribute
     private String manu = "";
 
     @XmlAttribute
@@ -22,7 +22,7 @@ public class MN {
     @XmlAttribute
     private String mouth = "";
 
-    @XmlAttribute(name = "date")
+    @XmlAttribute
     private String date_2 = "";
 
     @XmlAttribute
@@ -34,10 +34,10 @@ public class MN {
     @XmlAttribute
     private String color = "";
 
-    @XmlAttribute(name = "serial_num")
+    @XmlAttribute
     private String serial_num_4 = "";
 
-    @XmlAttribute(name = "fw_version")
+    @XmlAttribute
     private String fw_version_3 = "";
 
     public String getProduct() {
@@ -49,7 +49,7 @@ public class MN {
     }
 
     public String getManu() {
-        return strComplete(mouth,1);
+        return strComplete(manu,1);
     }
 
     public void setManu(String manu) {
@@ -176,7 +176,7 @@ public class MN {
         }
     }
 
-    public synchronized void snIncrement(){
+    public void snIncrement(){
         if (serial_num_4.length() <= 4 && TextUtils.isDigitsOnly(serial_num_4)){
             int val = Integer.parseInt(serial_num_4);
             val++;

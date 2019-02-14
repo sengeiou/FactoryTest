@@ -30,15 +30,15 @@ public class ExampleUnitTest {
 
     @Test
     public void read(){
-        Config conf = Util.readConfig("/Users/lijie/Desktop/L246.xml");
-
-        System.out.println(conf.getMn().toString());
-        conf.getMn().snIncrement();
+        // Config conf = Util.readConfig("/Users/lijie/Desktop/L246-factory.xml");
+        //
+        // System.out.println(conf.getMn().toString());
+        // conf.getMn().snIncrement();
         //System.out.println(conf.getMn().getFw_version_3());
-        SN sn = conf.getSn();
+        //SN sn = conf.getSn();
 
         //sn.snIncrement();
 
-        Util.writeConfig(conf,"/Users/lijie/Desktop/L246.xml");
+        //Util.writeConfig(conf,"/Users/lijie/Desktop/L246.xml");
     }
 }

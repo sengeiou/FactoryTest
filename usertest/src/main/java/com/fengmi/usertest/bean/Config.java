@@ -5,10 +5,10 @@ import lee.hua.xmlparse.annotation.XmlSingleNode;
 
 @XmlBean(name = "Config")
 public class Config {
-    @XmlSingleNode(name = "manufacture", nodeType = MN.class)
+    @XmlSingleNode(name = "MN",nodeType = MN.class)
     private MN mn;
 
-    @XmlSingleNode(name = "serial_number", nodeType = SN.class)
+    @XmlSingleNode(name = "SN",nodeType = SN.class)
     private SN sn;
 
     public MN getMn() {

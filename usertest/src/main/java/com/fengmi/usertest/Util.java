@@ -4,6 +4,7 @@ import android.annotation.NonNull;
 
 import com.fengmi.usertest.bean.Config;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -32,14 +33,11 @@ public final class Util {
         }
     }
 
-    public static Config readConfig(String path){
-        Config res = null;
+    public static Object readConfig(String path){
+        Object res = null;
         try {
-            XMLAPI.setXmlBeanScanPackage("com.fengmi.usertest.bean");
-            res = (Config) XMLAPI.readXML(new FileInputStream(path));
+            res = XMLAPI.readXML(new FileInputStream(path));
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
@@ -47,8 +45,13 @@ public final class Util {
     }
 
     public static boolean writeConfig(Config config,String path){
+
         boolean res = false;
         try {
+            File file = new File(path);
+            if (!file.exists()){
+                file.createNewFile();
+            }
             XMLAPI.writeObj2Xml(config,path);
             res = true;
         } catch (IOException e) {

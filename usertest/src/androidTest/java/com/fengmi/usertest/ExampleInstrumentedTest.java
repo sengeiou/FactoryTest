@@ -3,9 +3,23 @@ package com.fengmi.usertest;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
+
+import com.fengmi.usertest.bean.Config;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+
+import lee.hua.xmlparse.api.XMLAPI;
 
 import static org.junit.Assert.*;
 
@@ -22,5 +36,30 @@ public class ExampleInstrumentedTest {
         Context appContext = InstrumentationRegistry.getTargetContext();
 
         assertEquals("com.fengmi.usertest", appContext.getPackageName());
+    }
+
+    @Test
+    public void readConfig() throws IOException {
+        String path = "/storage/F8F0F6A3F0F66772/config/L246-factory.xml";
+
+        File file = new File(path);
+        if (file.exists()){
+            Log.e("L246","exist");
+        }else {
+            Log.e("L246","not found");
+        }
+        FileInputStream ins = new FileInputStream(file);
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        boolean res;
+        while (res = reader.readLine() != null){
+            Log.e("L246","" + res);
+        }
+
+
+        //Log.e("L246","end");
+        //Config config = (Config) XMLAPI.readXML();
+
+        //System.out.println(config.getMn());
+
     }
 }
