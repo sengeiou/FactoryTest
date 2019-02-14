@@ -27,4 +27,18 @@ public class ExampleUnitTest {
 
         Util.writeConfig(config,"/Users/lijie/Desktop/L246.xml");
     }
+
+    @Test
+    public void read(){
+        Config conf = Util.readConfig("/Users/lijie/Desktop/L246.xml");
+
+        System.out.println(conf.getMn().toString());
+        conf.getMn().snIncrement();
+        //System.out.println(conf.getMn().getFw_version_3());
+        SN sn = conf.getSn();
+
+        //sn.snIncrement();
+
+        Util.writeConfig(conf,"/Users/lijie/Desktop/L246.xml");
+    }
 }
