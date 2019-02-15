@@ -1,7 +1,6 @@
 package com.fengmi.usertest.activitys;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,9 +9,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.SparseArray;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -20,17 +22,9 @@ import android.widget.Toast;
 
 import com.droidlogic.app.KeyManager;
 import com.fengmi.usertest.R;
-import com.fengmi.usertest.Util;
 import com.fengmi.usertest.bean.Config;
-import com.fengmi.usertest.bean.MN;
-import com.fengmi.usertest.bean.SN;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Enumeration;
-
-import dalvik.system.DexFile;
 
 public class InfoWriteActivity extends Activity {
     private static final int USB_DETECT = 0;
@@ -52,10 +46,13 @@ public class InfoWriteActivity extends Activity {
     private EditText etMN;
     private EditText etSN;
 
-    private Button btnReadConfig;
-    private Button btnWriteConfig;
-    private ProgressDialog dialog;
-    private ConfigReadTask task;
+    private StringBuilder info;
+    private SparseArray<String> keyArray;
+
+    private String pid;
+    private String uiid;
+
+    private Button btnInfoWrite;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,97 +65,152 @@ public class InfoWriteActivity extends Activity {
         tvUIID = findViewById(R.id.tv_uiid);
         etMN = findViewById(R.id.et_manufacture_number);
         etSN = findViewById(R.id.et_serial_number);
-        btnReadConfig = findViewById(R.id.btn_read_conf);
-        btnWriteConfig = findViewById(R.id.btn_write_conf);
 
-        dialog = new ProgressDialog(this);
+        btnInfoWrite = findViewById(R.id.btn_info_write);
 
-        dialog.setTitle("读取" + PROJECT + "配置信息");
-
-        tvPID.setText("PID:" + keyManager.aml_key_read("product_id_fact", 0));
-        tvUIID.setText("UIID:" + keyManager.aml_key_read("product_id", 0));
+        pid = keyManager.aml_key_read("product_id_fact", 0);
+        uiid = keyManager.aml_key_read("product_id", 0);
+        tvPID.setText("PID:" + pid);
+        tvUIID.setText("UIID:" + uiid);
 
         infoHandler = new InfoHandler(this);
-        usbRegister();
 
-        btnReadConfig.setOnClickListener(new View.OnClickListener() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(etMN.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(etSN.getWindowToken(), 0);
+
+        info = new StringBuilder();
+        keyArrayInit();
+
+        btnInfoWrite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (task == null) {
-                    task = new ConfigReadTask();
-                    task.start();
+                writeInfo();
+            }
+        });
+    }
+
+    private void writeInfo(){
+        String sn = etSN.getText().toString();
+        String mn = etMN.getText().toString();
+        if (sn.length()==0){
+            Toast.makeText(this,"SN 为空",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (mn.length() == 0){
+            Toast.makeText(this,"MN 为空",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        sn = sn.split("/")[1];
+        Log.d(TAG,"sn = "+sn);
+        Log.d(TAG,"mn = "+mn);
+        //keyManager.aml_key_write("assm_sn",sn,0);
+        //keyManager.aml_key_write("assm_mn",mn,0);
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getDevice().getName().contains("Honeywell")) {
+            if (event.getAction() == KeyEvent.ACTION_UP) {
+                Log.d(TAG, "KeyCode :: " + event.getKeyCode());
+                Log.d(TAG, "KeyCode :: " + event.getDevice().getName());
+                int keyCode = event.getKeyCode();
+                String s = keyMatch(keyCode);
+                Log.d(TAG, "key info :: " + s);
+                if (!"err".equals(s)) {
+                    info.append(s);
+                }
+                if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                    String res = info.toString();
+                    Log.d(TAG, "scan info :: " + res);
+                    if (snVerify(res, "21236")) {
+                        etSN.setText(res);
+                    }
+                    if (mnVerify(res)) {
+                        etMN.setText(res);
+                    }
+
+                    info.delete(0, info.length());
                 }
             }
-        });
+        }
+        return super.dispatchKeyEvent(event);
+    }
 
-        btnWriteConfig.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        Config config = new Config();
-                        config.setSn(new SN());
-                        config.setMn(new MN());
-                        Util.writeConfig(config, "/data/ll.xml");
-                    }
-                }.start();
+    private boolean snVerify(String sn, String pid) {
+        if (sn.startsWith(pid) && sn.contains("/")) {
+            String[] sns = sn.split("/");
+            if (sns.length < 2) {
+                return false;
             }
-        });
-    }
-
-    private void freshView() {
-        String mn = mConfig.getMn().formatMN();
-        String sn = mConfig.getSn().getValue();
-        if (mn != null) {
-            etMN.setText(mn);
-        } else {
-            etMN.setText("未能正确读取到 MN");
-        }
-        if (sn != null) {
-            etSN.setText(sn);
-        } else {
-            etSN.setText("未能正确读取到 SN");
-        }
-    }
-
-
-    private boolean checkConfigExist(String path) {
-        boolean exist;
-        if (path.contains("unknow")) {
-            exist = false;
-        } else {
-            File file = new File(path);
-            if (!file.exists()) {
-                exist = false;
-            } else {
-                exist = true;
+            if (sns[1].length() == 8 && TextUtils.isDigitsOnly(sns[1])) {
+                return true;
             }
         }
-
-        return exist;
+        return false;
     }
 
-    private void readConfig() {
-        infoHandler.sendEmptyMessage(CONFIG_PARSING);
-        String path = usbFilePath + "/config/" + PROJECT + ".xml";
-        Log.d(TAG, "config path :: " + path);
-        if (checkConfigExist(path)) {
-            mConfig = (Config) Util.readConfig(path);
-            if (mConfig != null) {
-                SystemClock.sleep(1500);
-                infoHandler.sendEmptyMessage(CONFIG_PARSE_FINISH);
-            } else {
-                SystemClock.sleep(1500);
-                infoHandler.sendEmptyMessage(CONFIG_PARSE_ERROR);
-            }
-
-        } else {
-            infoHandler.sendEmptyMessage(CONFIG_NOT_EXIST);
+    private boolean mnVerify(String mn) {
+        if (mn.length() == 17) {
+            String prefix = mn.substring(0, 3);
+            String suffix = mn.substring(10, 17);
+            Log.d(TAG, "mn[0-3]=" + prefix + " mn[10-17]=" + suffix);
+            return TextUtils.isDigitsOnly(suffix) && prefix.matches("[a-zA-Z]{3}");
         }
-        infoHandler.sendEmptyMessage(CONFIG_DIALOG_CANCEL);
+        return false;
     }
 
+    private void keyArrayInit() {
+        keyArray = new SparseArray<>();
+        keyArray.append(KeyEvent.KEYCODE_0, "0");
+        keyArray.append(KeyEvent.KEYCODE_1, "1");
+        keyArray.append(KeyEvent.KEYCODE_2, "2");
+        keyArray.append(KeyEvent.KEYCODE_3, "3");
+        keyArray.append(KeyEvent.KEYCODE_4, "4");
+        keyArray.append(KeyEvent.KEYCODE_5, "5");
+        keyArray.append(KeyEvent.KEYCODE_6, "6");
+        keyArray.append(KeyEvent.KEYCODE_7, "7");
+        keyArray.append(KeyEvent.KEYCODE_8, "8");
+        keyArray.append(KeyEvent.KEYCODE_9, "9");
+        keyArray.append(KeyEvent.KEYCODE_A, "A");
+        keyArray.append(KeyEvent.KEYCODE_B, "B");
+        keyArray.append(KeyEvent.KEYCODE_C, "C");
+        keyArray.append(KeyEvent.KEYCODE_D, "D");
+        keyArray.append(KeyEvent.KEYCODE_E, "E");
+        keyArray.append(KeyEvent.KEYCODE_F, "F");
+        keyArray.append(KeyEvent.KEYCODE_G, "G");
+        keyArray.append(KeyEvent.KEYCODE_H, "H");
+        keyArray.append(KeyEvent.KEYCODE_I, "I");
+        keyArray.append(KeyEvent.KEYCODE_J, "J");
+        keyArray.append(KeyEvent.KEYCODE_K, "K");
+        keyArray.append(KeyEvent.KEYCODE_L, "L");
+        keyArray.append(KeyEvent.KEYCODE_M, "M");
+        keyArray.append(KeyEvent.KEYCODE_N, "N");
+        keyArray.append(KeyEvent.KEYCODE_O, "O");
+        keyArray.append(KeyEvent.KEYCODE_P, "P");
+        keyArray.append(KeyEvent.KEYCODE_Q, "Q");
+        keyArray.append(KeyEvent.KEYCODE_R, "R");
+        keyArray.append(KeyEvent.KEYCODE_S, "S");
+        keyArray.append(KeyEvent.KEYCODE_T, "T");
+        keyArray.append(KeyEvent.KEYCODE_U, "U");
+        keyArray.append(KeyEvent.KEYCODE_V, "V");
+        keyArray.append(KeyEvent.KEYCODE_W, "W");
+        keyArray.append(KeyEvent.KEYCODE_X, "X");
+        keyArray.append(KeyEvent.KEYCODE_Y, "Y");
+        keyArray.append(KeyEvent.KEYCODE_Z, "Z");
+        keyArray.append(KeyEvent.KEYCODE_SLASH, "/");
+        keyArray.append(KeyEvent.KEYCODE_ENTER, "");
+    }
+
+    private String keyMatch(int key) {
+        String val = keyArray.get(key, "err");
+        return val;
+    }
+
+
+    /**
+     * 注册 U盘 监听
+     */
     private void usbRegister() {
         UsbStatesReceiver usbStatesReceiver = new UsbStatesReceiver();
 
@@ -186,20 +238,20 @@ public class InfoWriteActivity extends Activity {
             if (info != null) {
                 switch (msg.what) {
                     case CONFIG_PARSING:
-                        info.dialog.show();
+                        //info.dialog.show();
                         break;
                     case CONFIG_DIALOG_CANCEL:
-                        info.dialog.cancel();
-                        info.task = null;
+                        //info.dialog.cancel();
+                        //info.readTask = null;
                         break;
                     case USB_DETECT:
-                        info.readConfig();
+                        //info.readConfig();
                         break;
                     case CONFIG_NOT_EXIST:
                         Toast.makeText(info, "未检测到配置文件", Toast.LENGTH_SHORT).show();
                         break;
                     case CONFIG_PARSE_FINISH:
-                        info.freshView();
+                        //info.freshView();
                         break;
                     case CONFIG_PARSE_ERROR:
                         Toast.makeText(info, "配置文件解析错误", Toast.LENGTH_SHORT).show();
@@ -210,12 +262,6 @@ public class InfoWriteActivity extends Activity {
         }
     }
 
-    class ConfigReadTask extends Thread {
-        @Override
-        public void run() {
-            readConfig();
-        }
-    }
 
     class UsbStatesReceiver extends BroadcastReceiver {
         private static final String TAG = "UsbStatesReceiver";

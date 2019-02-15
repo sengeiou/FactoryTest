@@ -39,21 +39,22 @@ public class ExampleInstrumentedTest {
     }
 
     @Test
-    public void readConfig() throws IOException {
-        String path = "/storage/F8F0F6A3F0F66772/config/L246-factory.xml";
-
-        File file = new File(path);
-        if (file.exists()){
-            Log.e("L246","exist");
-        }else {
-            Log.e("L246","not found");
-        }
-        FileInputStream ins = new FileInputStream(file);
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        boolean res;
-        while (res = reader.readLine() != null){
-            Log.e("L246","" + res);
-        }
+    public void readConfig() throws IOException, ClassNotFoundException {
+        XMLAPI.setXmlBeanScanPackage("com.fengmi.usertest.bean");
+        // String path = "/storage/F8F0F6A3F0F66772/config/L246-factory.xml";
+        //
+        // File file = new File(path);
+        // if (file.exists()){
+        //     Log.e("L246","exist");
+        // }else {
+        //     Log.e("L246","not found");
+        // }
+        // FileInputStream ins = new FileInputStream(file);
+        // BufferedReader reader = new BufferedReader(new FileReader(file));
+        // boolean res;
+        // while (res = reader.readLine() != null){
+        //     Log.e("L246","" + res);
+        // }
 
 
         //Log.e("L246","end");

@@ -6,6 +6,10 @@ import com.fengmi.usertest.bean.SN;
 
 import org.junit.Test;
 
+import java.io.IOException;
+
+import lee.hua.xmlparse.api.XMLAPI;
+
 import static org.junit.Assert.*;
 
 /**
@@ -29,7 +33,12 @@ public class ExampleUnitTest {
     }
 
     @Test
-    public void read(){
+    public void read() throws IOException, ClassNotFoundException {
+        String str = "MTTT";
+        str = str.substring(0,3);
+        System.out.println(str.matches("[a-zA-Z]{3}"));
+
+        // XMLAPI.setXmlBeanScanPackage("com.fengmi.usertest.bean");
         // Config conf = Util.readConfig("/Users/lijie/Desktop/L246-factory.xml");
         //
         // System.out.println(conf.getMn().toString());

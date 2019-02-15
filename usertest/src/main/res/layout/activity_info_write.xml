@@ -5,21 +5,6 @@
     android:layout_height="match_parent"
     tools:context=".activitys.InfoWriteActivity">
 
-    <Button
-        android:id="@+id/btn_read_conf"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        android:text="read config" />
-
-    <Button
-        android:id="@+id/btn_write_conf"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btn_read_conf"
-        android:text="write config" />
-
     <TextView
         android:id="@+id/tv_center"
         android:layout_width="wrap_content"
@@ -78,6 +63,7 @@
             android:layout_weight="7"
             android:imeOptions="actionNext"
             android:inputType="number"
+            android:focusable="false"
             android:nextFocusForward="@id/et_manufacture_number" />
     </LinearLayout>
 
@@ -102,7 +88,17 @@
             android:id="@+id/et_manufacture_number"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:digits="@string/mn_str_input_type"
+            android:maxLength="17"
+            android:focusable="false"
             android:layout_weight="7" />
     </LinearLayout>
 
+    <Button
+        android:id="@+id/btn_info_write"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:focusable="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </RelativeLayout>
