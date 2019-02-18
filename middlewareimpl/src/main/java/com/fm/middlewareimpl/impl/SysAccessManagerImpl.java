@@ -12,9 +12,8 @@ import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 public class SysAccessManagerImpl extends SysAccessManagerAbs {
 
 	private String[] IMAGE_MODES = null;
-	private SystemControlManager mControllManager;	
+	private SystemControlManager mControllManager;
 	private DLPCmd dlmCMD;
-	private static final String IMAGE_CMD_FILE = "/sys/class/i2c3/slave";
 
 	private AsyncTask<Void, Void, Boolean> mSaveTask = null;
 	private Projector_Sensor ps = null;
@@ -38,7 +37,7 @@ public class SysAccessManagerImpl extends SysAccessManagerAbs {
 		return ret;
 	}
 
-        public boolean syncDlpInfo(){
+	public boolean syncDlpInfo(){
 		try{
 			ShellUtil.execCommand("dlp_metadata --sync");
 			return true;
@@ -46,43 +45,43 @@ public class SysAccessManagerImpl extends SysAccessManagerAbs {
 			return false;
 		}
 	}
-        public boolean saveDlpInfo(){
+	public boolean saveDlpInfo(){
 		try{
 			return startSaveProgress();
-                }catch(Exception e){
-                        return false;
-                }
+		}catch(Exception e){
+			return false;
+		}
 
 	}
-        public boolean setWheelDelay(int delay){
+	public boolean setWheelDelay(int delay){
 		mControllManager.writeSysFs("/sys/class/projector/laser-projector/laser_seq", String.valueOf(delay));
 		return true;
 	}
-        public int getWheelDelay(){
+	public int getWheelDelay(){
 		try{
 			String value = ShellUtil.execCommand("cat /sys/class/projector/laser-projector/laser_seq");
 			int v = ShellUtil.formatDelayNumber(value);
 			return v;
-                }catch(Exception e){
+		}catch(Exception e){
 			e.printStackTrace();
-                        return 1000;
-                }
+			return 1000;
+		}
 
 	}
 	public boolean enableXPRCheck(String param){
 		if("0".equals(param)){
-			mControllManager.writeSysFs(IMAGE_CMD_FILE, dlmCMD.getXPRCheckInitCmd(true));
+			mControllManager.writeSysFs(dlmCMD.getImageCMDPath(), dlmCMD.getXPRCheckInitCmd(true));
 		}else{
-			mControllManager.writeSysFs(IMAGE_CMD_FILE, dlmCMD.getXPRCheckInitCmd(false));
+			mControllManager.writeSysFs(dlmCMD.getImageCMDPath(), dlmCMD.getXPRCheckInitCmd(false));
 		}
 		return true;
 	}
 
 	public boolean enableXPRShake(String param){
 		if("0".equals(param)){
-			mControllManager.writeSysFs(IMAGE_CMD_FILE, dlmCMD.getXPRShakeCmd(true));
+			mControllManager.writeSysFs(dlmCMD.getImageCMDPath(), dlmCMD.getXPRShakeCmd(true));
 		}else{
-			mControllManager.writeSysFs(IMAGE_CMD_FILE, dlmCMD.getXPRShakeCmd(false));
+			mControllManager.writeSysFs(dlmCMD.getImageCMDPath(), dlmCMD.getXPRShakeCmd(false));
 		}
 		return true;
 	}
@@ -129,51 +128,51 @@ public class SysAccessManagerImpl extends SysAccessManagerAbs {
 
 //========================================
 
-	 public boolean startSaveProgress(){
-                if(mSaveTask != null){
-                        return false;
-                }
-                mSaveTask = new AsyncTask<Void, Void, Boolean>(){
+	public boolean startSaveProgress(){
+		if(mSaveTask != null){
+			return false;
+		}
+		mSaveTask = new AsyncTask<Void, Void, Boolean>(){
 
-                        @Override
-                        protected Boolean doInBackground(Void... params) {
-                                try {
+			@Override
+			protected Boolean doInBackground(Void... params) {
+				try {
 					String execCommand = ShellUtil.execCommand("cat /sys/class/projector/laser-projector/laser_seq");
-				        int value = ShellUtil.formatDelayNumber(execCommand);
-				        Log.i("IMPL_SYSACC", "laser_seq is "+value);
-				        ShellUtil.execCommand("dlp_metadata --set dlp_index_delay "+value);
+					int value = ShellUtil.formatDelayNumber(execCommand);
+					Log.i("IMPL_SYSACC", "laser_seq is "+value);
+					ShellUtil.execCommand("dlp_metadata --set dlp_index_delay "+value);
 					ShellUtil.execCommand("dlp_metadata --save");
-                                } catch (Exception e) {
-                                        e.printStackTrace();
-                                        return false;
-                                }
-                                return true;
-                        }
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				}
+				return true;
+			}
 
-                        @Override
-                    protected void onPostExecute(Boolean result) {
-                                mSaveTask = null;
-                    }
+			@Override
+			protected void onPostExecute(Boolean result) {
+				mSaveTask = null;
+			}
 
-                };
-                mSaveTask.execute();
+		};
+		mSaveTask.execute();
 		return true;
-        }
+	}
 
 
 	public boolean doCheckScreen(int mode){
 		if(mode <0 || mode>= IMAGE_MODES.length){
 			return false;
 		}
-		mControllManager.writeSysFs(IMAGE_CMD_FILE, IMAGE_MODES[mode]);
+		mControllManager.writeSysFs(dlmCMD.getImageCMDPath(), IMAGE_MODES[mode]);
 		return true;
 	}
 
 	private boolean enableCheckScreen(String param){
 		if("0".equals(param)){
-			mControllManager.writeSysFs(IMAGE_CMD_FILE, dlmCMD.getScreenCheckInitCmd(true));
+			mControllManager.writeSysFs(dlmCMD.getImageCMDPath(), dlmCMD.getScreenCheckInitCmd(true));
 		}else{
-			mControllManager.writeSysFs(IMAGE_CMD_FILE, dlmCMD.getScreenCheckInitCmd(false));
+			mControllManager.writeSysFs(dlmCMD.getImageCMDPath(), dlmCMD.getScreenCheckInitCmd(false));
 		}
 		return true;
 	}
@@ -184,11 +183,11 @@ public class SysAccessManagerImpl extends SysAccessManagerAbs {
 		version = mControllManager.readSysFs("/sys/class/projector/led-projector/i2c_read");
 		Log.i("DlpVersion", "read original dlp version info :: " + version);
 		if (!version.trim().equals("")){
-                if (version.contains("echo")){    
-                    version = version.split("echo")[0];
-                }else {
-                    version = version.substring(0,8);
-                }
+			if (version.contains("echo")){
+				version = version.split("echo")[0];
+			}else {
+				version = version.substring(0,8);
+			}
 		}
 		Log.i("DlpVersion", "read dlp version info :: " + version);
 		return version;

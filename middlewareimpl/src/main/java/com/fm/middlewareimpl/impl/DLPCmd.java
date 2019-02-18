@@ -1,6 +1,9 @@
 package com.fm.middlewareimpl.impl;
 
 
+import android.os.SystemProperties;
+import android.util.Log;
+
 /**
  * DLP 光机命令
  *
@@ -8,8 +11,13 @@ package com.fm.middlewareimpl.impl;
  * @create 2018-08-12 20:53
  **/
 public abstract class DLPCmd {
+    protected static final String IMG_CMD_FILE_DEFAULT = "/sys/class/i2c3/slave";
+
+    protected static final String TAG = "DLPCmd";
+
     private static final String TYPE_CONAN = "conan";
     private static final String TYPE_BATMAN = "batman";
+    private static final String TYPE_BATMAN_HW_10 = "fm10_0";
 
     /**
      * get string [] of DLP screen check cmd
@@ -42,6 +50,12 @@ public abstract class DLPCmd {
     public abstract String getXPRShakeCmd(boolean on);
 
     /**
+     * get image command path
+     * @return string
+     */
+    public abstract String getImageCMDPath();
+
+    /**
      * init DLPCmd by Build.DEVICE
      *
      * @param type Build.DEVICE
@@ -54,7 +68,12 @@ public abstract class DLPCmd {
                 cmd = new ConanDLPCmd();
                 break;
             case TYPE_BATMAN:
-                cmd = new BatmanDLPCmd();
+                Log.d(TAG,"Batman DLP CMD init ! HW version is " + getHardwareVersion());
+                if (TYPE_BATMAN_HW_10.equals(getHardwareVersion())){
+                    cmd = new Batman_10_DLPCMD();
+                }else {
+                    cmd = new BatmanDLPCmd();
+                }
                 break;
             default:
                 cmd = new DefaultDLPCmd();
@@ -62,9 +81,66 @@ public abstract class DLPCmd {
         }
         return cmd;
     }
+    private static String getHardwareVersion(){
+        return SystemProperties.get("ro.boot.hardware_version","");
+    }
 
 }
+class Batman_10_DLPCMD extends DLPCmd{
+    private static final String BATMAN_10_IMG_CMD_FILE = "/sys/class/projector/laser-projector/serial_write";
 
+    private static final String CMD_COLOR_INIT = "8 02 14 9b 64 00 00 0d 0a";
+    private static final String CMD_COLOR_EXIT = "8 02 14 9c 63 00 09 0d 0a";
+
+    private static final String CMD_COLOR_PREFIX = "8 02 14 9c 63 00 ";
+    private static final String CMD_COLOR_SUFFIX = " 0d 0a";
+
+    private static final String CMD_COLOR_RED = CMD_COLOR_PREFIX + "01" + CMD_COLOR_SUFFIX;
+    private static final String CMD_COLOR_GREEN =  CMD_COLOR_PREFIX + "02" + CMD_COLOR_SUFFIX;
+    private static final String CMD_COLOR_BLUE =  CMD_COLOR_PREFIX + "03" + CMD_COLOR_SUFFIX;
+    private static final String CMD_COLOR_WHITE =  CMD_COLOR_PREFIX + "07" + CMD_COLOR_SUFFIX;
+    private static final String CMD_COLOR_BLACK =  CMD_COLOR_PREFIX + "00" + CMD_COLOR_SUFFIX;
+    private static final String CMD_COLOR_GREY =  CMD_COLOR_PREFIX + "08" + CMD_COLOR_SUFFIX;
+    private static final String CMD_COLOR_CYAN =  CMD_COLOR_PREFIX + "04" + CMD_COLOR_SUFFIX;
+    private static final String CMD_COLOR_MAGENTA =  CMD_COLOR_PREFIX + "05" + CMD_COLOR_SUFFIX;
+    private static final String CMD_COLOR_YELLOW =  CMD_COLOR_PREFIX + "06" + CMD_COLOR_SUFFIX;
+
+
+    @Override
+    public String[] getImageModes() {
+        return new String[]{
+                CMD_COLOR_RED,CMD_COLOR_GREEN,CMD_COLOR_BLUE,
+                CMD_COLOR_WHITE,CMD_COLOR_BLACK,CMD_COLOR_GREY,
+                CMD_COLOR_CYAN,CMD_COLOR_MAGENTA,CMD_COLOR_YELLOW
+        };
+    }
+
+    @Override
+    public String getScreenCheckInitCmd(boolean open) {
+        if (open){
+            return CMD_COLOR_INIT;
+        }
+        return CMD_COLOR_EXIT;
+
+    }
+
+    @Override
+    public String getXPRCheckInitCmd(boolean open) {
+        Log.d(TAG,"sorry no support for XPR");
+        return "";
+    }
+
+    @Override
+    public String getXPRShakeCmd(boolean on) {
+        Log.d(TAG,"sorry no support for XPR");
+        return "";
+    }
+
+    @Override
+    public String getImageCMDPath() {
+        return BATMAN_10_IMG_CMD_FILE;
+    }
+}
 /**
  * DLP cmd for batman
  */
@@ -96,10 +172,10 @@ class BatmanDLPCmd extends DLPCmd {
     @Override
     public String[] getImageModes() {
         return new String[]{CMD_COLOR_RED,CMD_COLOR_GREEN,
-            CMD_COLOR_BLUE,CMD_COLOR_BLACK,CMD_COLOR_WHITE,
-            CMD_COLOR_GRAY_HORIZONTAL,CMD_COLOR_GRAY_VERTICAL,
-            CMD_GRADATION_GRID,CMD_GRADATION_RESEAU,CMD_GRADATION_DIAMOND,
-            CMD_GRADATION_LINE_HORIZONTAL,CMD_GRADATION_LINE_VERTICAL
+                CMD_COLOR_BLUE,CMD_COLOR_BLACK,CMD_COLOR_WHITE,
+                CMD_COLOR_GRAY_HORIZONTAL,CMD_COLOR_GRAY_VERTICAL,
+                CMD_GRADATION_GRID,CMD_GRADATION_RESEAU,CMD_GRADATION_DIAMOND,
+                CMD_GRADATION_LINE_HORIZONTAL,CMD_GRADATION_LINE_VERTICAL
         };
     }
 
@@ -127,6 +203,11 @@ class BatmanDLPCmd extends DLPCmd {
             return CMD_XPR_SHAKE_OFF;
         }
     }
+
+    @Override
+    public String getImageCMDPath() {
+        return IMG_CMD_FILE_DEFAULT;
+    }
 }
 
 /**
@@ -140,6 +221,9 @@ class ConanDLPCmd extends DLPCmd {
     private static final String CMD_COLOR_GREEN_CONAN = "1b 3 0 67 c0 00";
     private static final String CMD_COLOR_RED_CONAN = "1b 3 0 67 a0 00";
     private static final String CMD_COLOR_BLUE_CONAN = "1b 3 0 67 90 00";
+    private static final String CMD_COLOR_BLACK_CONAN = "1b 3 0 67 00 00";
+    private static final String CMD_COLOR_GRAY_HORIZONTAL = "1b 3 0 67 02 ff";
+    private static final String CMD_COLOR_GRAY_VERTICAL = "1b 3 0 67 03 ff";
     private static final String CMD_GRADATION_RESEAU = "1b 3 0 67 81 00";
     private static final String CMD_XPR_PIC_CONAN = "1b 3 0 67 08 00";
 
@@ -153,7 +237,8 @@ class ConanDLPCmd extends DLPCmd {
     public String[] getImageModes() {
         return new String[]{CMD_COLOR_WHITE_CONAN,
                 CMD_COLOR_GREEN_CONAN, CMD_COLOR_RED_CONAN, CMD_COLOR_BLUE_CONAN,
-                CMD_GRADATION_RESEAU,CMD_XPR_PIC_CONAN
+                CMD_GRADATION_RESEAU,CMD_XPR_PIC_CONAN,CMD_COLOR_BLACK_CONAN,
+                CMD_COLOR_GRAY_HORIZONTAL,CMD_COLOR_GRAY_VERTICAL
         };
     }
 
@@ -180,6 +265,11 @@ class ConanDLPCmd extends DLPCmd {
         }else{
             return CMD_XPR_SHAKE_OFF;
         }
+    }
+
+    @Override
+    public String getImageCMDPath() {
+        return IMG_CMD_FILE_DEFAULT;
     }
 }
 
@@ -237,6 +327,11 @@ class DefaultDLPCmd extends DLPCmd {
     @Override
     public String getXPRShakeCmd(boolean on) {
         return null;
+    }
+
+    @Override
+    public String getImageCMDPath() {
+        return IMG_CMD_FILE_DEFAULT;
     }
 }
 
