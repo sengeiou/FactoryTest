@@ -3,18 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:orientation="vertical">
+
         <TextView
             android:id="@+id/tv_pq_type"
-            android:gravity="center"
-            android:textSize="20sp"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.4"/>
+            android:layout_weight="0.4"
+            android:gravity="center"
+            android:textSize="20sp" />
+
         <TextView
             android:id="@+id/tv_pq_value"
             android:layout_width="match_parent"
@@ -37,17 +40,24 @@
         <Button
             android:id="@+id/btn_pq_plus"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:text="UP"
+            android:background="@drawable/btn_selector_pq"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="+"
             android:textSize="35sp" />
 
         <Button
             android:id="@+id/btn_pq_minus"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="5dp"
             android:layout_weight="1"
-            android:text="DOWN"
+            android:background="@drawable/btn_selector_pq"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="-"
             android:textSize="35sp" />
     </LinearLayout>
 </LinearLayout>

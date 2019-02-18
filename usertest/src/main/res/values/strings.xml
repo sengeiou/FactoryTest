@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">UserTest</string>
+    <string name="mn_str_input_type">0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
 </resources>
