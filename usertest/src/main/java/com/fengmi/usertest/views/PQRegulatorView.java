@@ -10,9 +10,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.fengmi.usertest.IRadioCheckListener;
-import com.fengmi.usertest.Util;
 import com.fengmi.usertest.PicModeManagerImpl;
 import com.fengmi.usertest.R;
+import com.fengmi.usertest.Util;
 
 public class PQRegulatorView extends RelativeLayout implements IRadioCheckListener {
     private static final String TAG = "PQRegulatorView";
@@ -85,29 +85,30 @@ public class PQRegulatorView extends RelativeLayout implements IRadioCheckListen
             pqDecrease();
         }
     }
-    public void updatePQView(){
+
+    public void updatePQView() {
         int val = queryPQValue(pqType);
-        tvPQValue.setText(""+val);
+        tvPQValue.setText("" + val);
     }
 
     private void pqIncrease() {
         int val = queryPQValue(pqType);
-        val+= Util.PQ_ADJUST_STEP;
-        Log.d(TAG,"pqIncrease :: "+val);
+        val += Util.PQ_ADJUST_STEP;
+        Log.d(TAG, "pqIncrease :: " + val);
         setPQValue(pqType, val);
     }
 
     private void pqDecrease() {
         int val = queryPQValue(pqType);
-        val-= Util.PQ_ADJUST_STEP;
-        Log.d(TAG,"pqDecrease :: "+val);
+        val -= Util.PQ_ADJUST_STEP;
+        Log.d(TAG, "pqDecrease :: " + val);
         setPQValue(pqType, val);
     }
 
     private int queryPQValue(int type) {
         int val = -1;
         int colorTemp = picModeManager.picGetColorTemp();
-        Log.d(TAG,"picGetColorTemp :: "+colorTemp);
+        Log.d(TAG, "picGetColorTemp :: " + colorTemp);
         switch (type) {
             case 0:
                 val = picModeManager.picGetPostRedGain(colorTemp);
@@ -133,7 +134,7 @@ public class PQRegulatorView extends RelativeLayout implements IRadioCheckListen
 
     private boolean setPQValue(int type, int data) {
         int colorTemp = picModeManager.picGetColorTemp();
-        Log.d(TAG,"picGetColorTemp :: "+colorTemp);
+        Log.d(TAG, "picGetColorTemp :: " + colorTemp);
         boolean val = false;
         switch (type) {
             case 0:

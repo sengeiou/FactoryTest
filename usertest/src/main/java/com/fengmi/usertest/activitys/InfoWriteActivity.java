@@ -1,14 +1,17 @@
 package com.fengmi.usertest.activitys;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
@@ -22,7 +25,6 @@ import android.widget.Toast;
 
 import com.droidlogic.app.KeyManager;
 import com.fengmi.usertest.R;
-import com.fengmi.usertest.bean.Config;
 
 import java.lang.ref.WeakReference;
 
@@ -39,7 +41,6 @@ public class InfoWriteActivity extends Activity {
     private static String usbFilePath = "unknow";
     private KeyManager keyManager;
     private InfoHandler infoHandler;
-    private Config mConfig = null;
 
     private TextView tvPID;
     private TextView tvUIID;
@@ -51,8 +52,12 @@ public class InfoWriteActivity extends Activity {
 
     private String pid;
     private String uiid;
+    private String sn;
+    private String mn;
 
     private Button btnInfoWrite;
+    private AlertDialog writeDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,24 +93,43 @@ public class InfoWriteActivity extends Activity {
                 writeInfo();
             }
         });
+
+        writeDialog = new AlertDialog
+                .Builder(this)
+                .setTitle("SN 和 MN 写入")
+                .setPositiveButton("写入", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // keyManager.aml_key_write("assm_sn", sn, 0);
+                        // keyManager.aml_key_write("assm_mn", mn, 0);
+                        SystemClock.sleep(500);
+                        startActivity(new Intent(InfoWriteActivity.this, PQActivity.class));
+                        finish();
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .create();
     }
 
-    private void writeInfo(){
-        String sn = etSN.getText().toString();
-        String mn = etMN.getText().toString();
-        if (sn.length()==0){
-            Toast.makeText(this,"SN 为空",Toast.LENGTH_SHORT).show();
+    private void writeInfo() {
+        sn = etSN.getText().toString();
+        mn = etMN.getText().toString();
+        if (sn.length() == 0) {
+            Toast.makeText(this, "SN 为空", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (mn.length() == 0){
-            Toast.makeText(this,"MN 为空",Toast.LENGTH_SHORT).show();
+        if (mn.length() == 0) {
+            Toast.makeText(this, "MN 为空", Toast.LENGTH_SHORT).show();
             return;
         }
         sn = sn.split("/")[1];
-        Log.d(TAG,"sn = "+sn);
-        Log.d(TAG,"mn = "+mn);
-        //keyManager.aml_key_write("assm_sn",sn,0);
-        //keyManager.aml_key_write("assm_mn",mn,0);
+        Log.d(TAG, "sn = " + sn);
+        Log.d(TAG, "mn = " + mn);
+
+        writeDialog.setMessage("请确认信息是否正确" + "\n"
+                + "SN = " + sn + "\n"
+                + "MN = " + mn);
+        writeDialog.show();
     }
 
     @Override
