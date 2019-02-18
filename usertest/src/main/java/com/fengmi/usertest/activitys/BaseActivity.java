@@ -1,13 +1,14 @@
-package com.fengmi.usertest;
+package com.fengmi.usertest.activitys;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.Window;
 
-public class MainActivity extends Activity {
+public class BaseActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
     }
 }

@@ -20,9 +20,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activitys.PQActivity" />
+        <activity android:name=".activitys.PQActivity" >
 
-        <activity android:name=".MainActivity" />
+        </activity>
 
         <receiver android:name=".receivers.BootCompletedReceiver">
             <intent-filter>

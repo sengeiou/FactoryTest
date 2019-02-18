@@ -165,8 +165,8 @@ public class PQRegulatorView extends RelativeLayout implements IRadioCheckListen
     }
 
     private enum PQ_TYPE {
-        RED_GAIN(0, "red gain"), GREEN_GAIN(1, "green gain"), BLUE_GAIN(2, "blue gain"),
-        RED_OFF(10, "red offset"), GREEN_OFF(11, "green offset"), BLUE_OFF(12, "blue offset");
+        RED_GAIN(0, "R gain"), GREEN_GAIN(1, "G gain"), BLUE_GAIN(2, "B gain"),
+        RED_OFF(10, "R offs"), GREEN_OFF(11, "G offs"), BLUE_OFF(12, "B offs");
         int value;
         String desc;
 

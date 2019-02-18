@@ -1,6 +1,5 @@
 package com.fengmi.usertest.activitys;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -28,7 +27,7 @@ import com.fengmi.usertest.R;
 
 import java.lang.ref.WeakReference;
 
-public class InfoWriteActivity extends Activity {
+public class InfoWriteActivity extends BaseActivity {
     private static final int USB_DETECT = 0;
     private static final int CONFIG_NOT_EXIST = 1;
     private static final int CONFIG_PARSING = 2;
@@ -100,8 +99,8 @@ public class InfoWriteActivity extends Activity {
                 .setPositiveButton("写入", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // keyManager.aml_key_write("assm_sn", sn, 0);
-                        // keyManager.aml_key_write("assm_mn", mn, 0);
+                        keyManager.aml_key_write("assm_sn", sn, 0);
+                        keyManager.aml_key_write("assm_mn", mn, 0);
                         SystemClock.sleep(500);
                         startActivity(new Intent(InfoWriteActivity.this, PQActivity.class));
                         finish();
@@ -134,6 +133,9 @@ public class InfoWriteActivity extends Activity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.ACTION_UP && event.getAction() == KeyEvent.KEYCODE_MENU) {
+
+        }
         if (event.getDevice().getName().contains("Honeywell")) {
             if (event.getAction() == KeyEvent.ACTION_UP) {
                 Log.d(TAG, "KeyCode :: " + event.getKeyCode());
@@ -147,7 +149,7 @@ public class InfoWriteActivity extends Activity {
                 if (keyCode == KeyEvent.KEYCODE_ENTER) {
                     String res = info.toString();
                     Log.d(TAG, "scan info :: " + res);
-                    if (snVerify(res, "21236")) {
+                    if (snVerify(res, "19101")) {
                         etSN.setText(res);
                     }
                     if (mnVerify(res)) {

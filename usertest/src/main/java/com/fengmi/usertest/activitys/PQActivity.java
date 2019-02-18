@@ -1,31 +1,37 @@
 package com.fengmi.usertest.activitys;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fengmi.usertest.Util;
+import com.droidlogic.app.KeyManager;
 import com.fengmi.usertest.PicModeManagerImpl;
 import com.fengmi.usertest.R;
+import com.fengmi.usertest.Util;
 
-public class PQActivity extends Activity {
+public class PQActivity extends BaseActivity {
     private static final String TAG = "PQActivity";
 
     private RadioGroup rgColorTemp;
     private RadioGroup rgColorAdjust;
+    private TextView tvInfo;
 
     private PicModeManagerImpl picModeManager;
+    private KeyManager keyManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pq);
         rgColorTemp = findViewById(R.id.rg_color_temp);
         rgColorAdjust = findViewById(R.id.rg_adjust);
+        tvInfo = findViewById(R.id.tv_sn_mn);
 
         picModeManager = new PicModeManagerImpl(this);
+        keyManager = new KeyManager(this);
 
         rgColorTemp.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -61,6 +67,14 @@ public class PQActivity extends Activity {
         });
         rgColorTemp.check(R.id.rb_color_normal);
         rgColorAdjust.check(R.id.rb_adjust_min);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String sn = keyManager.aml_key_read("assm_sn",0);
+        String mn = keyManager.aml_key_read("assm_mn",0);
+        tvInfo.setText("SN="+sn+"\t\tMN="+mn);
     }
 
     @Override

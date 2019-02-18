@@ -6,12 +6,21 @@
     android:layout_height="match_parent"
     android:background="#DFDEDE"
     tools:context=".activitys.PQActivity">
+    <TextView
+        android:textSize="18sp"
+        android:gravity="center"
+        android:textStyle="bold"
+        android:id="@+id/tv_sn_mn"
+        android:singleLine="true"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="30dp" />
 
     <LinearLayout
         android:id="@+id/ll_offset"
         android:layout_width="match_parent"
         android:layout_height="130dp"
-        android:layout_alignParentTop="true"
+        android:layout_below="@id/tv_sn_mn"
         android:gravity="center"
         android:orientation="horizontal">
 
