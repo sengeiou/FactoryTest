@@ -11,6 +11,7 @@ import com.fm.factorytest.base.BaseCmdService;
 import com.fm.factorytest.global.BoxCommandDescription;
 import com.fm.factorytest.global.FactorySetting;
 import com.fm.factorytest.global.TvCommandDescription;
+import com.fm.factorytest.utils.KeyStoneUtil;
 import com.fm.factorytest.utils.MotorUtil;
 
 import java.util.List;
@@ -260,6 +261,18 @@ public class CommandService extends BaseCmdService {
         Log.i(TAG, "handleCommand cmdid : " + id);
         //do your business here
         switch (id) {
+            case TvCommandDescription.CMDID_KEYSTONE_ENABLE:
+                try {
+                    mBinder.setResult_bool(cmdid, KeyStoneUtil.setKeyStoneMode(param));
+                } catch (android.os.RemoteException ex) {
+                }
+                break;
+            case TvCommandDescription.CMDID_KEYSTONE_SET:
+                try {
+                    mBinder.setResult_bool(cmdid, KeyStoneUtil.setKeyStoneDirect(param));
+                } catch (android.os.RemoteException ex) {
+                }
+                break;
             /**新增led控制*/
             case TvCommandDescription.CMDID_LED_TEST:
                 try {

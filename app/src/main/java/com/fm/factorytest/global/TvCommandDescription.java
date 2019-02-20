@@ -354,6 +354,9 @@ public class TvCommandDescription {
 
     public static final int CMDID_READ_DLP_VERSION = 0x14DB;
 
+    public static final int CMDID_KEYSTONE_ENABLE = 0x14DC;
+    public static final int CMDID_KEYSTONE_SET = 0x14DD;
+
     /***************2. BOX command ID(the prefix is 0x2)**************/
     /* ------------------------------------ command id stop ---------------------------*/
 
@@ -368,6 +371,8 @@ public class TvCommandDescription {
     /* ------------------------------------ command table start ---------------------------*/
     /**************5. define cmdDesc***********************/
     public static final String[][] cmdDesc = {
+            {Integer.toHexString(CMDID_KEYSTONE_SET).toUpperCase(), "set 8 points keystone direct", CMD_TYPE_COMMON},
+            {Integer.toHexString(CMDID_KEYSTONE_ENABLE).toUpperCase(), "set 8 points keystone enable", CMD_TYPE_COMMON},
             {Integer.toHexString(CMDID_READ_DLP_VERSION).toUpperCase(), "read dlp version", CMD_TYPE_COMMON},
             {Integer.toHexString(CMDID_SET_AGING_LINE).toUpperCase(), "set aging count line for conan", CMD_TYPE_COMMON},
             {Integer.toHexString(CMDID_GET_AGING_LINE).toUpperCase(), "get aging count line for conan", CMD_TYPE_COMMON},

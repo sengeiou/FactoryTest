@@ -3,7 +3,6 @@ package com.fm.middlewareimpl.interf;
 import android.content.Context;
 
 
-
 public abstract class SysAccessManagerAbs extends BaseMiddleware {
     public SysAccessManagerAbs(Context context) {
         super(context);
@@ -40,4 +39,19 @@ public abstract class SysAccessManagerAbs extends BaseMiddleware {
     public abstract String readGSensorHorizontalData();
 
     public abstract String readDLPVersion();
+
+    /**
+     * 开启关闭8点校正
+     *
+     * @param param 0 = on,1 = off
+     * @return boolean
+     */
+    public abstract boolean setKeyStoneMode(String param);
+
+    /**
+     * 8点校正 调整
+     * @param param point(1-8),direct(1-4),step(1,5)
+     * @return
+     */
+    public abstract boolean setKeyStoneDirect(String param);
 }
