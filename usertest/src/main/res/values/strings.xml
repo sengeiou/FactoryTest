@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">UserTest</string>
     <string name="mn_str_input_type">0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
+    <string-array name="spinner_pic_array">
+        <item>70IRE</item>
+        <item>30IRE</item>
+        <item>红</item>
+        <item>绿</item>
+        <item>蓝</item>
+        <item>白</item>
+        <item>黑</item>
+        <item>灰10</item>
+    </string-array>
 </resources>

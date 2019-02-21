@@ -12,7 +12,7 @@ import android.widget.TextView;
 import com.fengmi.usertest.IRadioCheckListener;
 import com.fengmi.usertest.PicModeManagerImpl;
 import com.fengmi.usertest.R;
-import com.fengmi.usertest.Util;
+import com.fengmi.usertest.utils.Util;
 
 public class PQRegulatorView extends RelativeLayout implements IRadioCheckListener {
     private static final String TAG = "PQRegulatorView";

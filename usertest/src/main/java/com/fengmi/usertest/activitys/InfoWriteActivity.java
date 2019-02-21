@@ -102,8 +102,6 @@ public class InfoWriteActivity extends BaseActivity {
                         keyManager.aml_key_write("assm_sn", sn, 0);
                         keyManager.aml_key_write("assm_mn", mn, 0);
                         SystemClock.sleep(500);
-                        startActivity(new Intent(InfoWriteActivity.this, PQActivity.class));
-                        finish();
                     }
                 })
                 .setNegativeButton("取消", null)

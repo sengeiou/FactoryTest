@@ -1,7 +1,8 @@
-package com.fengmi.usertest;
+package com.fengmi.usertest.utils;
 
 import android.annotation.NonNull;
 
+import com.fengmi.usertest.IRadioCheckListener;
 import com.fengmi.usertest.bean.Config;
 
 import java.io.File;

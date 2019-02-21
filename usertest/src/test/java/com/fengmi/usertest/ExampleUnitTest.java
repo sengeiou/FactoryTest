@@ -3,12 +3,11 @@ package com.fengmi.usertest;
 import com.fengmi.usertest.bean.Config;
 import com.fengmi.usertest.bean.MN;
 import com.fengmi.usertest.bean.SN;
+import com.fengmi.usertest.utils.Util;
 
 import org.junit.Test;
 
 import java.io.IOException;
-
-import lee.hua.xmlparse.api.XMLAPI;
 
 import static org.junit.Assert.*;
 
