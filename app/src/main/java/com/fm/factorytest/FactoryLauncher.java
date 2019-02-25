@@ -16,7 +16,9 @@ import android.widget.TextView;
 import com.fm.factorytest.helper.TemperatureHelper;
 import com.fm.factorytest.service.CommandService;
 import com.fm.middlewareimpl.impl.KeyManagerImpl;
+import com.fm.middlewareimpl.impl.SysAccessManagerImpl;
 import com.fm.middlewareimpl.interf.KeyManagerAbs;
+import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 
 import mitv.powermanagement.ScreenSaverManager;
 
@@ -115,11 +117,8 @@ public class FactoryLauncher extends Activity {
     public void dispatchKeyEvent(int code) {
         switch (code) {
             case 19:
-                if (keyManager == null) {
-                    keyManager = new KeyManagerImpl(this);
-                }
-                keyManager.enableAllKey();
-                //Log.i(TAG, "setImgPath   " + keyManager.setImgPath(""));
+                SysAccessManagerAbs sysAbs = new SysAccessManagerImpl(this);
+                Log.d(TAG, "version = " + sysAbs.readDLPVersion());
                 break;
             case 20:
                 break;

@@ -3,6 +3,8 @@ package com.fm.middlewareimpl.impl;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -10,9 +12,11 @@ import com.droidlogic.app.SystemControlManager;
 import com.fm.middlewareimpl.global.ShellUtil;
 import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 
+import mitv.internal.TvUtils;
 import mitv.keystone.IKeystoneService;
 import mitv.keystone.KeystoneManager;
 import mitv.keystone.KeystonePoint;
+import mitv.projector.IProjectorService;
 import mitv.tv.TvContext;
 
 public class SysAccessManagerImpl extends SysAccessManagerAbs {
@@ -27,6 +31,8 @@ public class SysAccessManagerImpl extends SysAccessManagerAbs {
 
     private KeystoneManager keystoneManager;
 
+    private IProjectorService projectorService;
+
     public SysAccessManagerImpl(Context context) {
         super(context);
         this.mControllManager = new SystemControlManager(context);
@@ -34,6 +40,9 @@ public class SysAccessManagerImpl extends SysAccessManagerAbs {
         this.IMAGE_MODES = dlmCMD.getImageModes();
         keystoneManager = TvContext.getInstance().getKeystoneManager();
         mCtx = context;
+
+        IBinder projectorBinder = TvUtils.getAccessoryService(TvUtils.PROJECTOR_SERVICE_NAME);
+        projectorService = IProjectorService.Stub.asInterface(projectorBinder);
     }
 
     public boolean screenCheck(int mode) {
@@ -241,18 +250,42 @@ public class SysAccessManagerImpl extends SysAccessManagerAbs {
     }
 
     private String getDlpVersion() {
-        String version = "";
-        mControllManager.writeSysFs("/sys/class/projector/led-projector/i2c_read", "d9 4");
-        version = mControllManager.readSysFs("/sys/class/projector/led-projector/i2c_read");
-        Log.i("DlpVersion", "read original dlp version info :: " + version);
-        if (!version.trim().equals("")) {
-            if (version.contains("echo")) {
-                version = version.split("echo")[0];
-            } else {
-                version = version.substring(0, 8);
+        String version;
+        if (projectorService != null){
+            try {
+                version = projectorService.GetProjectorInfo().GetFlashBuildVersion();
+                String[] vers = version.split(",");
+                String[] vs = new String[3];
+                for (String ver : vers) {
+                    if (ver.contains("major: ")){
+                        vs[0] = (ver.replace("major: ","").trim());
+                    }
+                    if (ver.contains("minor: ")){
+                        vs[1] = (ver.replace("minor: ","").trim());
+                    }
+                    if (ver.contains("patch: ")){
+                        vs[2] = (ver.replace("patch: ","").trim());
+                    }
+                }
+                version =vs[0]+"."+vs[1]+"."+vs[2];
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                version = "read error";
             }
+
+        }else {
+            mControllManager.writeSysFs("/sys/class/projector/led-projector/i2c_read", "d9 4");
+            version = mControllManager.readSysFs("/sys/class/projector/led-projector/i2c_read");
+            Log.i(TAG, "read original dlp version info :: " + version);
+            if (!version.trim().equals("")) {
+                if (version.contains("echo")) {
+                    version = version.split("echo")[0];
+                } else {
+                    version = version.substring(0, 8);
+                }
+            }
+            Log.i("DlpVersion", "read dlp version info :: " + version);
         }
-        Log.i("DlpVersion", "read dlp version info :: " + version);
         return version;
     }
 }
