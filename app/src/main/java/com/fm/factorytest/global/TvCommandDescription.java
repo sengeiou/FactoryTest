@@ -354,8 +354,9 @@ public class TvCommandDescription {
 
     public static final int CMDID_READ_DLP_VERSION = 0x14DB;
 
-    public static final int CMDID_KEYSTONE_ENABLE = 0x14DC;
-    public static final int CMDID_KEYSTONE_SET = 0x14DD;
+    public static final int CMDID_ADJUST_VOLUME = 0x14DC;
+    public static final int CMDID_KEYSTONE_ENABLE = 0x14DD;
+    public static final int CMDID_KEYSTONE_SET = 0x14DE;
 
     /***************2. BOX command ID(the prefix is 0x2)**************/
     /* ------------------------------------ command id stop ---------------------------*/

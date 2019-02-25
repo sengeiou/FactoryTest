@@ -269,7 +269,7 @@ public class CommandService extends BaseCmdService {
                 break;
             case TvCommandDescription.CMDID_KEYSTONE_SET:
                 try {
-                    mBinder.setResult_bool(cmdid, KeyStoneUtil.setKeyStoneDirect(param));
+                    mBinder.setResult_bool(cmdid, KeyStoneUtil.setKeyStoneSets());
                 } catch (android.os.RemoteException ex) {
                 }
                 break;
