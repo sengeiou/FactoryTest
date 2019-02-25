@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.droidlogic.app.KeyManager;
 import com.droidlogic.app.SystemControlManager;
+import com.fm.middlewareimpl.global.KeyWriteUtil;
 import com.fm.middlewareimpl.interf.KeyManagerAbs;
 
 import java.io.File;
@@ -38,8 +39,8 @@ public class KeyManagerImpl extends KeyManagerAbs {
     private static final String NAME = "/sys/class/unifykeys/name";
     private static final String WRITE = "/sys/class/unifykeys/write";
     private static final String READ = "/sys/class/unifykeys/read";
-    private static final String ATTACH_ON = "0";
-    private static final String ATTACH_OFF = "1";
+    private static final String ATTACH_ON = "1";
+    private static final String ATTACH_OFF = "0";
 
     private KeyManager keyManager;
     private SystemControlManager systemControlManager;
@@ -130,8 +131,6 @@ public class KeyManagerImpl extends KeyManagerAbs {
     private void setAllKeyToDTS() {
         byte[] hdcp14rx = getHdcpKey(HDCP_14_FILEPATH, HDCP_14_RX_LEN);
 
-        //key attach on
-        systemControlManager.writeSysFs(ATTACH, ATTACH_ON);
         //hdcp 1.4 RX write
         setDataToDTS(hdcp14rx, HDCP_14_NAME);
         //hdcp 2.2 RX write
@@ -143,11 +142,32 @@ public class KeyManagerImpl extends KeyManagerAbs {
         systemControlManager.writeSysFs("/sys/class/hdmirx/hdmirx0/debug", "load22key");
     }
 
+    /**
+     * enable HDCP key by write key to dts
+     * 写 key 分为三步
+     * 1. echo 1 > /sys/class/unifykeys/attach
+     * 2. echo key name > /sys/class/unifykeys/name
+     * 3. echo key data > /sys/class/unifykeys/write
+     *
+     * @param datas key 字节数据
+     * @param keyName key 文件
+     */
     private void setDataToDTS(byte[] datas, String keyName) {
+        //key attach on
+        systemControlManager.writeSysFs(ATTACH, ATTACH_ON);
+        //open key name
         systemControlManager.writeSysFs(NAME, keyName);
-        systemControlManager.writeSysFs(WRITE, new String(datas));
+        //write key value
+        KeyWriteUtil.writeSysFSBin(WRITE,datas,datas.length);
     }
 
+    /**
+     * 将 key 二进制文件保存到本地
+     * @param key 文件内容，每个字节以","连接
+     * @param path 文件保存路径
+     * @param len 文件字节长度
+     * @return success
+     */
     private boolean setHdcpKey(String key, String path, int len) {
         boolean ret = false;
         byte key_byte[] = new byte[len];
@@ -187,6 +207,12 @@ public class KeyManagerImpl extends KeyManagerAbs {
         return ret;
     }
 
+    /**
+     * 读取指定路径下的文件
+     * @param path 文件路径
+     * @param len 文件字节长度
+     * @return 文件内容
+     */
     private byte[] getHdcpKey(String path, int len) {
         byte[] key = new byte[len];
         Log.i(TAG, "Get Hdcp Key");
@@ -207,6 +233,12 @@ public class KeyManagerImpl extends KeyManagerAbs {
 
     /**
      * hdcp 2.2 RX 写入
+     *
+     * hdcp key 文件包含三个子 item，分别是
+     * 1. hdcp22_rx_private 对应写入名称：hdcp22_rx_private
+     * 2. hdcp2_rx 对应写入名称：hdcp2_rx
+     * 3. extractedKey 对应写入名称：hdcp22_rx_fw
+     *
      * @param hdcp22Path hdcp 2.2 file path
      * @throws IOException
      */
@@ -221,6 +253,7 @@ public class KeyManagerImpl extends KeyManagerAbs {
         }
         InputStream is = new FileInputStream(file);
         int len = is.available();
+        Log.e(TAG, "setImgPath hdcp 22 file available is " + len);
         if (len > 0) {
             readBuf = new byte[len];
             is.read(readBuf);
@@ -317,23 +350,28 @@ public class KeyManagerImpl extends KeyManagerAbs {
         }
 
         /**
-         * key item 分类写入
+         * 将 hdcp 2.2 3个key item 分类写入
          *
          * @param datas 完整的 key 文件字节数据
          */
         void itemSplit(byte[] datas) {
-            byte[] buffer = new byte[getDataSize() + 4];
+            byte[] buffer = new byte[getDataSize()];
             String keyName = null;
             int off = getDataOffset();
             int size = getDataSize();
+            Log.d(TAG, "item split, off = " + off + ", size = " + size);
             if ((off + size) > datas.length) {
                 Log.d(TAG, "item split error, off + size > data len");
             }
 
             String temp = getName();
+            //字节读取
             System.arraycopy(datas, off, buffer, 0, size);
 
+            Log.d(TAG,"buffer len = "+buffer.length+",temp name = "+temp);
+
             if (temp.contains("hdcp22_rx_private")) {
+                //对 hdcp22_rx_private key 进行加密处理
                 buffer = hdcp2DataEncryption(getDataSize(), buffer);
                 keyName = "hdcp22_rx_private";
             } else if (temp.contains("hdcp2_rx")) {
@@ -342,8 +380,13 @@ public class KeyManagerImpl extends KeyManagerAbs {
                 keyName = "hdcp22_rx_fw";
             }
 
-            Log.d(TAG, keyName + " | " + Arrays.toString(buffer));
-            // TODO: 2019-02-11 write key here
+            for (int i = 0; i < buffer.length; i++) {
+                Log.d(TAG, keyName + " | buffer["+i +"]="+ Integer.toHexString(buffer[i]));
+            }
+            //write hdcp 22 key
+            if (keyName != null) {
+                setDataToDTS(buffer, keyName);
+            }
         }
 
         private byte generateDataChange(byte input) {

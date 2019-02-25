@@ -16,9 +16,7 @@ import android.widget.TextView;
 import com.fm.factorytest.helper.TemperatureHelper;
 import com.fm.factorytest.service.CommandService;
 import com.fm.middlewareimpl.impl.KeyManagerImpl;
-import com.fm.middlewareimpl.impl.MediaTestManagerImpl;
 import com.fm.middlewareimpl.interf.KeyManagerAbs;
-import com.fm.middlewareimpl.interf.MediaTestManagerAbs;
 
 import mitv.powermanagement.ScreenSaverManager;
 
@@ -26,6 +24,7 @@ public class FactoryLauncher extends Activity {
     private final String TAG = "FactoryTestLauncher";
     KeyManagerAbs keyManagerAbs;
     String KEY = "factory_power_mode";
+    KeyManagerAbs keyManager = null;
     private TextView mTV_FW_Version;
     private Context mContext;
     private StartPostSale mStartPostSale = null;
@@ -112,14 +111,14 @@ public class FactoryLauncher extends Activity {
         ((TextView) findViewById(R.id.temperatur_3)).setText(data.channel2Temperature);
         ((TextView) findViewById(R.id.temperatur_4)).setText(data.wheelTemperature);
     }
-    KeyManagerAbs keyManager = null;
 
     public void dispatchKeyEvent(int code) {
         switch (code) {
             case 19:
-                if (keyManager == null){
+                if (keyManager == null) {
                     keyManager = new KeyManagerImpl(this);
                 }
+                keyManager.enableAllKey();
                 //Log.i(TAG, "setImgPath   " + keyManager.setImgPath(""));
                 break;
             case 20:
