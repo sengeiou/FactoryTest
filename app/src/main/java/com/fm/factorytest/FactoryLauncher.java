@@ -4,6 +4,10 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbEndpoint;
+import android.hardware.usb.UsbInterface;
+import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
 import android.media.session.MediaSessionLegacyHelper;
 import android.os.Bundle;
@@ -13,14 +17,24 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.TextView;
 
+import com.fm.factorytest.comm.bean.Command;
+import com.fm.factorytest.comm.bean.CommandTxWrapper;
+import com.fm.factorytest.comm.server.CommandServer;
+import com.fm.factorytest.comm.vo.USB;
 import com.fm.factorytest.helper.TemperatureHelper;
 import com.fm.factorytest.service.CommandService;
+import com.fm.factorytest.service.FengTVService;
 import com.fm.middlewareimpl.impl.KeyManagerImpl;
 import com.fm.middlewareimpl.impl.SysAccessManagerImpl;
 import com.fm.middlewareimpl.interf.KeyManagerAbs;
 import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 
+import java.util.HashMap;
+
 import mitv.powermanagement.ScreenSaverManager;
+
+import static com.fm.factorytest.comm.factory.IOFactory.initPort;
+import static com.fm.factorytest.comm.factory.IOFactory.usb;
 
 public class FactoryLauncher extends Activity {
     private final String TAG = "FactoryTestLauncher";
@@ -66,6 +80,8 @@ public class FactoryLauncher extends Activity {
         mHandler = new Handler();
         keyManagerAbs = new KeyManagerImpl(this);
         am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+        startService(new Intent(this, FengTVService.class));
     }
 
     @Override
@@ -119,6 +135,7 @@ public class FactoryLauncher extends Activity {
             case 19:
                 SysAccessManagerAbs sysAbs = new SysAccessManagerImpl(this);
                 Log.d(TAG, "version = " + sysAbs.readDLPVersion());
+                initUSB();
                 break;
             case 20:
                 break;
@@ -128,6 +145,8 @@ public class FactoryLauncher extends Activity {
                 break;
             case 24:
                 volUp();
+                CommandTxWrapper tx = new CommandTxWrapper("1409","ee", CommandTxWrapper.DATA_STRING);
+                tx.send();
                 //String name = keyManagerAbs.aml_key_get_name();
                 //Log.i(TAG, "aml_key_get_name   " + name);
                 break;
@@ -249,6 +268,65 @@ public class FactoryLauncher extends Activity {
             }
             return false;
         }
+    }
+
+    private void initUSB(){
+        if (usb == null){
+            usb = new USB.USBBuilder(this)
+                    .setBaudRate(115200)
+                    .setDataBits(8)
+                    .setParity(1)
+                    .setStopBits(0)
+                    .setMaxReadBytes(80)
+                    .setReadDuration(20)
+                    .build();
+            usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
+                @Override
+                public void onUsbConnect() {
+                    Log.d(TAG, "onUsbConnect");
+                    CommandServer server = new CommandServer();
+                    server.init(initPort());
+                }
+
+                @Override
+                public void onUsbDisconnect() {
+                    Log.d(TAG, "onUsbDisconnect");
+                }
+
+                @Override
+                public void onUsbConnectFailed() {
+                    Log.d(TAG, "onUsbConnectFailed");
+                }
+
+                @Override
+                public void onPermissionGranted() {
+                    Log.d(TAG, "onPermissionGranted");
+                }
+
+                @Override
+                public void onPermissionRefused() {
+                    Log.d(TAG, "onPermissionRefused");
+                }
+
+                @Override
+                public void onDriverNotSupport() {
+                    Log.d(TAG, "onDriverNotSupport");
+                }
+
+                @Override
+                public void onWriteDataFailed(String s) {
+                    Log.d(TAG, "onWriteDataFailed == " + s);
+                }
+
+                @Override
+                public void onWriteSuccess(int i) {
+                    Log.d(TAG, "onWriteSuccess");
+                }
+            });
+        }
+        //调用此方法先触发一次USB检测
+        usb.afterGetUsbPermission(usb.getTargetDevice());
+
     }
 
 }

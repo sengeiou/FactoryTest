@@ -17,7 +17,7 @@ public final class ShellUtil {
     }
 
     public static StringBuilder callCommand(String command) throws IOException {
-        Log.i(TAG, "execCommand: " + command);
+        //Log.i(TAG, "execCommand: " + command);
         // start the ls command running
         // String[] args = new String[]{"sh", "-c", command};
         Runtime runtime = Runtime.getRuntime();
