@@ -12,7 +12,6 @@ import com.fm.factorytest.comm.vo.USB;
  **/
 public final class IOFactory {
     private static CommunicatePort port;
-    public static volatile USB usb;
 
     public synchronized static CommunicatePort initPort() {
         if (port == null || port instanceof USBCommunicatePort) {

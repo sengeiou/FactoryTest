@@ -1,6 +1,5 @@
 package com.fm.factorytest.comm.vo;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -22,20 +21,55 @@ import java.util.List;
  * 串口通讯
  */
 public class USB {
-
+    private static final String TAG = "USB";
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
+    /**
+     * 通讯端口
+     */
     public UsbSerialPort port;
+    /**
+     * 上下文对象
+     */
     private Context ctx;
+    /**
+     * USB Manager
+     */
     private UsbManager usbManager;
+    /**
+     * USB 状态监听对象
+     */
     private OnUsbChangeListener onUsbChangeListener;
-    private int BAUD_RATE = 115200;
-    private int DATA_BITS = 8;
-    private int STOP_BITS = UsbSerialPort.STOPBITS_1;
-    private int PARITY = UsbSerialPort.PARITY_NONE;
-    private int MAX_READ_BYTES = 100;
-
+    /**
+     * 波特率
+     */
+    private int BAUD_RATE;
+    /**
+     * 数据位
+     */
+    private int DATA_BITS;
+    /**
+     * 停止位
+     */
+    private int STOP_BITS;
+    /**
+     * 校验位
+     */
+    private int PARITY;
+    /**
+     * 缓存空间
+     */
+    private int MAX_READ_BYTES;
+    /**
+     * 是否支持 DTR
+     */
     private boolean DTR = false;
+    /**
+     * 是否支持 RTS
+     */
     private boolean RTS = false;
+    /**
+     * USB 拔插、授权事件监听
+     */
     private final BroadcastReceiver mUsbPermissionActionReceiver = new BroadcastReceiver() {
 
         public void onReceive(Context context, Intent intent) {
@@ -46,7 +80,7 @@ public class USB {
                 disConnectDevice();
             } else if (ACTION_USB_PERMISSION.equals(action)) {
                 synchronized (this) {
-                    UsbDevice usbDevice = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    UsbDevice usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         //user choose YES for your previously popup window asking for grant perssion for this usb device
                         if (onUsbChangeListener != null) {
@@ -65,9 +99,6 @@ public class USB {
             }
         }
     };
-    //500毫秒读一次
-    private int READ_DURATION = 1000;
-
 
     private USB(Context ctx, USBBuilder builder) {
         BAUD_RATE = builder.BAUD_RATE;
@@ -75,7 +106,6 @@ public class USB {
         STOP_BITS = builder.STOP_BITS;
         PARITY = builder.PARITY;
         MAX_READ_BYTES = builder.MAX_READ_BYTES;
-        READ_DURATION = builder.READ_DURATION;
         DTR = builder.DTR;
         RTS = builder.RTS;
 
@@ -97,9 +127,9 @@ public class USB {
     public void writeData(byte[] data, int timeoutMills) {
         try {
             if (port != null) {
-                Log.e("TTT", "write start");
+                Log.e(TAG, "write start");
                 int num = port.write(data, timeoutMills);
-                Log.e("TTT", "write end");
+                Log.e(TAG, "write end");
                 if (onUsbChangeListener != null) {
                     onUsbChangeListener.onWriteSuccess(num);
                 }
@@ -117,6 +147,9 @@ public class USB {
 
     }
 
+    /**
+     * 注册监听
+     */
     private void register() {
         IntentFilter usbFilter = new IntentFilter();
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
@@ -136,12 +169,13 @@ public class USB {
         }
         disConnectDevice();
         onUsbChangeListener = null;
+        ctx = null;
     }
 
     /**
      * 断开连接
      */
-    public void disConnectDevice() {
+    private void disConnectDevice() {
         if (port != null) {
             try {
                 port.close();
@@ -155,6 +189,9 @@ public class USB {
         }
     }
 
+    /**
+     * 请求USB设备权限
+     */
     private void requestPermission() {
         if (ctx != null) {
             PendingIntent mPermissionIntent = PendingIntent.getBroadcast(ctx, 0, new Intent(ACTION_USB_PERMISSION), 0);
@@ -170,6 +207,10 @@ public class USB {
         }
     }
 
+    /**
+     * 打开 USB端口
+     * @param usbDevice usb 设备
+     */
     public void afterGetUsbPermission(UsbDevice usbDevice) {
         // Find all available drivers from attached devices.
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
@@ -211,6 +252,22 @@ public class USB {
         }
     }
 
+    /**
+     * 获取目标端口
+     * @return USB device
+     */
+    public UsbDevice getTargetDevice() {
+        UsbDevice res = null;
+        for (UsbDevice device : usbManager.getDeviceList().values()) {
+            String name = device.getProductName();
+            if (name != null && name.contains("CP2102")) {
+                res = device;
+            }
+        }
+        Log.d(TAG, "target device = " + res);
+        return res;
+    }
+
     public interface OnUsbChangeListener {
 
         void onUsbConnect();
@@ -243,7 +300,6 @@ public class USB {
         private boolean DTR = false;
         private boolean RTS = false;
 
-        private int READ_DURATION = 1000;
 
         public USBBuilder(Context act) {
             this.act = act;
@@ -274,11 +330,6 @@ public class USB {
             return this;
         }
 
-        public USBBuilder setReadDuration(int readDuration) {
-            this.READ_DURATION = readDuration;
-            return this;
-        }
-
         public USBBuilder setDTR(boolean dtr) {
             this.DTR = dtr;
             return this;
@@ -293,15 +344,5 @@ public class USB {
             return new USB(act, this);
         }
 
-    }
-
-    public UsbDevice getTargetDevice(){
-        for (UsbDevice device : usbManager.getDeviceList().values()) {
-            String name = device.getProductName();
-            if (name!=null && name.contains("CP2102")){
-                return device;
-            }
-        }
-        return null;
     }
 }

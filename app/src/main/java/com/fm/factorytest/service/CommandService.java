@@ -57,9 +57,7 @@ public class CommandService extends BaseCmdService {
     }
 
     private void prepareFactorytest() {
-        if (productType.contains(FactorySetting.NAME_PRODUCT_TYPE_BOX)) {
-            prepareFactorytestBOX();
-        } else if (productType.contains(FactorySetting.NAME_PRODUCT_TYPE_TV)) {
+        if (productType.contains(FactorySetting.NAME_PRODUCT_TYPE_TV)) {
             prepareFactorytestTV();
         } else if (productType.contains(FactorySetting.NAME_PRODUCT_TYPE_PROJECTOR)) {
             prepareFactorytestTV();
@@ -119,44 +117,6 @@ public class CommandService extends BaseCmdService {
         mMediaImpl.setScreenRes("1080P60");
     }
 
-    //BOX
-    private void prepareFactorytestBOX() {
-        //1.0 init TvCommandDescription
-        //1.1 update Boot Times
-        Log.i(TAG, "CMDSERVICE: update boot times");
-        mLocalPropImpl.initLocalProperty();
-        mUtilImpl.systemUpdateBootTimes();
-        //2. Led flash
-        if (mUtilImpl.systemGetBootTimes() == 1) {
-            Log.i(TAG, "first  boot up");
-            SystemClock.sleep(11000);
-            mUtilImpl.ledStartFlash(2500);
-            //mUtilImpl.setLedLightStat("2");
-            //4. prop init
-            Log.i(TAG, "CMDSERVICE: init local prop");
-            initLocalPropBOX();
-            if (!mUtilImpl.setApplicationRid()) {
-                Log.e(TAG, "can't create rid");
-            }
-        }
-        //3. disable BT
-        Log.i(TAG, "CMDSERVICE: set bt disable");
-        mRfNetImpl.btSetStatus(false);
-        //6. if huaxing, start panel sync init
-        Log.i(TAG, "CMDSERVICE: init 3D sync");
-        //mMediaImpl.hdmiCheck3DSyncInit();
-        //5. autoruncmd
-        Log.i(TAG, "CMDSERVICE: check and set aging");
-        autoRunCommand();
-        //8. set system boot up directly next time
-        mUtilImpl.bootupSystemDirect();
-        //9. set SoundVolume
-        mAudioImpl.audioSetSoundVolume(75);
-        //10. set backlight as MAX (100)
-        mPicModeImpl.picSetBacklight(100);
-        //11. close DTS/DOLBY
-        mAudioImpl.closeDTS_DOLBY();
-    }
 
     private void initLocalPropTV() {
         int val = 0;
@@ -168,19 +128,6 @@ public class CommandService extends BaseCmdService {
         mLocalPropImpl.setLocalPropInt(mFactorySetting.FACTPROP_BURNINGSOUR, 0);
         mLocalPropImpl.setLocalPropBool(mFactorySetting.FACTPROP_AUTORUN_STATUS, false);
         String defaultAutorun = "1222" + "/";
-        mLocalPropImpl.setLocalPropString(mSettingManager.FACTPROP_AUTORUN_COMMAND, defaultAutorun);
-    }
-
-    private void initLocalPropBOX() {
-        int val = 0;
-        mLocalPropImpl.setLocalPropInt(mFactorySetting.FACTPROP_AGINGTIMERCOUNT, 0);
-        mLocalPropImpl.setLocalPropInt(mFactorySetting.FACTPROP_BACKLIGHT, 0);
-        mLocalPropImpl.setLocalPropInt(mFactorySetting.FACTPROP_BRIGHTNESS, 0);
-        mLocalPropImpl.setLocalPropInt(mFactorySetting.FACTPROP_CONTRAST, 0);
-        mLocalPropImpl.setLocalPropInt(mFactorySetting.FACTPROP_3D, 0);
-        mLocalPropImpl.setLocalPropInt(mFactorySetting.FACTPROP_BURNINGSOUR, 0);
-        mLocalPropImpl.setLocalPropBool(mFactorySetting.FACTPROP_AUTORUN_STATUS, false);
-        String defaultAutorun = "2222" + "/" + "52,107,50,107"; //aging(4k2k)
         mLocalPropImpl.setLocalPropString(mSettingManager.FACTPROP_AUTORUN_COMMAND, defaultAutorun);
     }
 

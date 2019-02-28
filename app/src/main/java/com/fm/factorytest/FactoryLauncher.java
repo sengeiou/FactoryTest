@@ -4,10 +4,6 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbEndpoint;
-import android.hardware.usb.UsbInterface;
-import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
 import android.media.session.MediaSessionLegacyHelper;
 import android.os.Bundle;
@@ -17,38 +13,34 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.TextView;
 
-import com.fm.factorytest.comm.bean.Command;
 import com.fm.factorytest.comm.bean.CommandTxWrapper;
 import com.fm.factorytest.comm.server.CommandServer;
 import com.fm.factorytest.comm.vo.USB;
 import com.fm.factorytest.helper.TemperatureHelper;
 import com.fm.factorytest.service.CommandService;
 import com.fm.factorytest.service.FengTVService;
-import com.fm.middlewareimpl.impl.KeyManagerImpl;
 import com.fm.middlewareimpl.impl.SysAccessManagerImpl;
 import com.fm.middlewareimpl.interf.KeyManagerAbs;
 import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 
-import java.util.HashMap;
-
 import mitv.powermanagement.ScreenSaverManager;
 
+import static com.fm.factorytest.comm.base.PLMContext.usb;
 import static com.fm.factorytest.comm.factory.IOFactory.initPort;
-import static com.fm.factorytest.comm.factory.IOFactory.usb;
 
 public class FactoryLauncher extends Activity {
     private final String TAG = "FactoryTestLauncher";
     KeyManagerAbs keyManagerAbs;
-    String KEY = "factory_power_mode";
-    KeyManagerAbs keyManager = null;
     private TextView mTV_FW_Version;
     private Context mContext;
     private StartPostSale mStartPostSale = null;
+
+    private CommandServer mCommandServer;
+
     /**
      * Called when the activity is first created.
      */
     private Handler mHandler = null;
-    private AudioManager am;
     private Runnable mRefreshRunnable = new Runnable() {
 
         @Override
@@ -78,8 +70,6 @@ public class FactoryLauncher extends Activity {
         //set default input
         android.provider.Settings.Secure.putString(mContext.getContentResolver(), "default_input_method", "com.baidu.input/.ImeService");
         mHandler = new Handler();
-        keyManagerAbs = new KeyManagerImpl(this);
-        am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         startService(new Intent(this, FengTVService.class));
     }
@@ -145,7 +135,7 @@ public class FactoryLauncher extends Activity {
                 break;
             case 24:
                 volUp();
-                CommandTxWrapper tx = new CommandTxWrapper("1409","ee", CommandTxWrapper.DATA_STRING);
+                CommandTxWrapper tx = new CommandTxWrapper("1409", "ee", CommandTxWrapper.DATA_STRING);
                 tx.send();
                 //String name = keyManagerAbs.aml_key_get_name();
                 //Log.i(TAG, "aml_key_get_name   " + name);
@@ -157,22 +147,74 @@ public class FactoryLauncher extends Activity {
     }
 
     private void volUp() {
-        // am.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
-
         MediaSessionLegacyHelper.getHelper(this).sendAdjustVolumeBy(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
-
-        // KeyEvent event = new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_VOLUME_UP);
-        //
-        // MediaSessionLegacyHelper.getHelper(this).sendVolumeKeyEvent(event,false);
     }
 
     private void volDown() {
         MediaSessionLegacyHelper.getHelper(this).sendAdjustVolumeBy(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+    }
 
-        //am.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+    /**
+     * 初始化 USB 端口
+     */
+    private void initUSB() {
+        if (usb == null) {
+            usb = new USB.USBBuilder(this)
+                    .setBaudRate(115200)
+                    .setDataBits(8)
+                    .setParity(1)
+                    .setStopBits(0)
+                    .setMaxReadBytes(80)
+                    .build();
+            usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
+                @Override
+                public void onUsbConnect() {
+                    Log.d(TAG, "onUsbConnect");
+                    mCommandServer = new CommandServer();
+                    mCommandServer.init(initPort());
+                }
 
-        // KeyEvent event = new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_VOLUME_DOWN);
-        // MediaSessionLegacyHelper.getHelper(this).sendVolumeKeyEvent(event,false);
+                @Override
+                public void onUsbDisconnect() {
+                    Log.d(TAG, "onUsbDisconnect");
+                    if (mCommandServer != null) {
+                        mCommandServer.close();
+                    }
+                }
+
+                @Override
+                public void onUsbConnectFailed() {
+                    Log.d(TAG, "onUsbConnectFailed");
+                }
+
+                @Override
+                public void onPermissionGranted() {
+                    Log.d(TAG, "onPermissionGranted");
+                }
+
+                @Override
+                public void onPermissionRefused() {
+                    Log.d(TAG, "onPermissionRefused");
+                }
+
+                @Override
+                public void onDriverNotSupport() {
+                    Log.d(TAG, "onDriverNotSupport");
+                }
+
+                @Override
+                public void onWriteDataFailed(String s) {
+                    Log.d(TAG, "onWriteDataFailed == " + s);
+                }
+
+                @Override
+                public void onWriteSuccess(int i) {
+                    Log.d(TAG, "onWriteSuccess");
+                }
+            });
+        }
+        //调用此方法先触发一次USB检测
+        usb.afterGetUsbPermission(usb.getTargetDevice());
     }
 
     /**
@@ -268,65 +310,6 @@ public class FactoryLauncher extends Activity {
             }
             return false;
         }
-    }
-
-    private void initUSB(){
-        if (usb == null){
-            usb = new USB.USBBuilder(this)
-                    .setBaudRate(115200)
-                    .setDataBits(8)
-                    .setParity(1)
-                    .setStopBits(0)
-                    .setMaxReadBytes(80)
-                    .setReadDuration(20)
-                    .build();
-            usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
-                @Override
-                public void onUsbConnect() {
-                    Log.d(TAG, "onUsbConnect");
-                    CommandServer server = new CommandServer();
-                    server.init(initPort());
-                }
-
-                @Override
-                public void onUsbDisconnect() {
-                    Log.d(TAG, "onUsbDisconnect");
-                }
-
-                @Override
-                public void onUsbConnectFailed() {
-                    Log.d(TAG, "onUsbConnectFailed");
-                }
-
-                @Override
-                public void onPermissionGranted() {
-                    Log.d(TAG, "onPermissionGranted");
-                }
-
-                @Override
-                public void onPermissionRefused() {
-                    Log.d(TAG, "onPermissionRefused");
-                }
-
-                @Override
-                public void onDriverNotSupport() {
-                    Log.d(TAG, "onDriverNotSupport");
-                }
-
-                @Override
-                public void onWriteDataFailed(String s) {
-                    Log.d(TAG, "onWriteDataFailed == " + s);
-                }
-
-                @Override
-                public void onWriteSuccess(int i) {
-                    Log.d(TAG, "onWriteSuccess");
-                }
-            });
-        }
-        //调用此方法先触发一次USB检测
-        usb.afterGetUsbPermission(usb.getTargetDevice());
-
     }
 
 }

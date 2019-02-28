@@ -5,7 +5,7 @@ import com.fm.factorytest.comm.base.CommunicatePort;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static com.fm.factorytest.comm.factory.IOFactory.usb;
+import static com.fm.factorytest.comm.base.PLMContext.*;
 
 
 public class USBCommunicatePort extends CommunicatePort {
@@ -46,7 +46,7 @@ public class USBCommunicatePort extends CommunicatePort {
 
     @Override
     public void closePort() {
-
+        usb.destroy();
     }
 
     @Override

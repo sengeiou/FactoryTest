@@ -1,20 +1,14 @@
 package com.fm.factorytest.base;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
-import com.fm.factorytest.comm.server.CommandServer;
-import com.fm.factorytest.comm.vo.USB;
 import com.fm.factorytest.global.FactorySetting;
 
 import java.io.PrintWriter;
-
-import static com.fm.factorytest.comm.factory.IOFactory.initPort;
-import static com.fm.factorytest.comm.factory.IOFactory.usb;
 
 /* receive command from remoter, maybe network, broadcast receiver ....*/
 
