@@ -1,13 +1,14 @@
 package com.fm.factorytest.comm.server;
 
 
-import com.fm.factorytest.comm.base.CommunicatePort;
 import com.fm.factorytest.comm.bean.Command;
 import com.fm.factorytest.comm.bean.CommandRxWrapper;
+import com.fm.factorytest.comm.factory.IOFactory;
 
-import java.util.*;
-
-import static com.fm.factorytest.comm.factory.CommandFactory.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Timer;
 
 
 /**
@@ -20,11 +21,8 @@ public class CommandServer {
     public static LinkedList<Command> sendList = new LinkedList<>();
     public static LinkedList<CommandRxWrapper> dataList = new LinkedList<>();
     public static Map<String, Command> ackList = new HashMap<>();
-
-    private CommunicateEngine ce;
-
     private static CommandRxWrapper wrapper = null;
-
+    private CommunicateEngine ce;
     private Timer heartBeat;
 
     static void notifyDataReceived(byte[] data) {
@@ -33,11 +31,6 @@ public class CommandServer {
         if (wrapper == null || !wrapper.isReceiving()) {
             wrapper = new CommandRxWrapper();
             wrapper.setCmdID(command.getCommandID());
-//            wrapper = PLMContext.cmdWrapper.get(command.getCommandID());
-//            if (wrapper == null) {
-//                System.out.println("undefined command : ID = " + command.getCommandID());
-//                return;
-//            }
         }
 
         if ((command.getCmdNum() + 1) == command.getCmdSum()) {
@@ -45,15 +38,11 @@ public class CommandServer {
             wrapper.addCommand(command);
             dataList.add(wrapper);
             wrapper.received();
-            wrapper.onRxDataRec();
         } else {
             if (wrapper.getCmdID().equals(command.getCommandID())) {
                 System.out.println("received multi cmd data ,and cmd id is " + command.getCommandID());
-
                 wrapper.addCommand(command);
             } else {
-
-                //wrapper = PLMContext.cmdWrapper.get(command.getCommandID());
                 if (wrapper == null) {
                     System.out.println("undefined command : ID = " + command.getCommandID());
                 } else {
@@ -69,8 +58,8 @@ public class CommandServer {
     /**
      * start communicate engine and heartbeat
      */
-    public void init(CommunicatePort port) {
-        ce = new CommunicateEngine(port);
+    public void init() {
+        ce = new CommunicateEngine(IOFactory.initPort());
         ce.start();
 
         // heartBeat = new Timer();
@@ -97,11 +86,12 @@ public class CommandServer {
      * close
      */
     public void close() {
-        if (ce != null){
-            ce.closePort();
+        if (ce != null) {
+            ce.killEngine();
         }
         if (heartBeat != null) {
             heartBeat.cancel();
         }
+        IOFactory.resetPort();
     }
 }

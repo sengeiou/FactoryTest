@@ -50,6 +50,7 @@ public class CommunicateEngine extends Thread {
 
     public CommunicateEngine(@NonNull CommunicatePort port) {
         commPort = port;
+        running = true;
     }
 
     @Override
@@ -193,8 +194,7 @@ public class CommunicateEngine extends Thread {
 
     }
 
-    public void closePort() {
-        IOFactory.initPort().closePort();
+    public void killEngine() {
         running = false;
     }
 }

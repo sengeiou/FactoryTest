@@ -12,6 +12,8 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.fm.factorytest.ICommandService;
+import com.fm.factorytest.comm.base.GlobalCommandReceiveListener;
+import com.fm.factorytest.comm.bean.CommandRxWrapper;
 import com.fm.factorytest.global.BoxCommandDescription;
 import com.fm.factorytest.global.FactorySetting;
 import com.fm.factorytest.global.TvCommandDescription;
@@ -38,23 +40,24 @@ import com.fm.middlewareimpl.interf.UtilManagerAbs;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 //import android.support.v4.content.LocalBroadcastManager;
 
 
-public class BaseCmdService extends Service implements CommandSource.OnCommandListener {
+public class BaseCmdService extends Service implements CommandSource.OnCommandListener, GlobalCommandReceiveListener {
     protected static final String TAG = "FactoryTest";
-    CommandSource mCmdSource;
-    private EventHub mEventHub;
-    protected boolean TouchFlag = false;
-    PrintWriter Cmdout = null;
+    /**
+     * ------------ onbind ------------
+     */
+
+    //TODO, add your message business
+    protected static final int CHECK_COMMAND_RUNNING = 10000;
+    protected static final int COMMAND_STARTRUN_TIMEOUT = 5000;
     final ArrayList<Command> mActivityRunningCmds = new ArrayList<Command>();
-    //if a activity operation have two or more operations, here we should reserve
-    //it after first operation for next work.
-    private Command ReservedActivityCmd = null;
-    private Context mContext;
     public TvCommandDescription mTvCd = TvCommandDescription.getInstance();
     public BoxCommandDescription mBoxCd = BoxCommandDescription.getInstance();
+    protected boolean TouchFlag = false;
     //init for factory middleware
     //init for factory middleware
     protected AudioTestManagerAbs mAudioImpl;
@@ -69,62 +72,35 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
     protected SettingManager mSettingManager;
     protected SysAccessManagerAbs mSysAccessImpl;
 
-    public void onCreate() {
-        Log.i(TAG, "+++++++++++++++++++++++++++++++++++++++++++++++++");
-        Log.i(TAG, "FactoryTest Begin to Work!");
-        Log.i(TAG, "+++++++++++++++++++++++++++++++++++++++++++++++++");
-        //TODO  some init work
-        //init for factory middleware
-        initMiddlewareApi();
-
-        mCmdSource = new CommandSource(this, this);
-        mContext = this;
-        mEventHub = new EventHub(mContext);
-        //close screen saver and sleep mode
-        //mUtilImpl.closeScreenSave2Sleep();
-        //other should use myHandler
-    }
-
-    //init for factory middleware
-    private void initMiddlewareApi() {
-        mAudioImpl = new AudioTestManagerImpl(this);
-        mInfoImpl = new InfoAccessManagerImpl(this);
-        mLocalPropImpl = new LocalPropertyManagerImpl(this);
-        mMediaImpl = new MediaTestManagerImpl(this);
-        mPicModeImpl = new PicModeManagerImpl(this);
-        mRfNetImpl = new RfNetManagerImpl(this);
-        mFactorySetting = new SettingManager();
-        mUtilImpl = new UtilManagerImpl(this);
-        mStorageImpl = new StorageManagerImpl(this);
-        mSysAccessImpl = new SysAccessManagerImpl(this);
-    }
-
-    public void onDestroy() {
-        mCmdSource.finishCommandSouce();
-    }
-    /**------------ onbind ------------*/
-    /* * create the channel between commandservice and every activity.*/
-
-    /**
-     * ------------ onbind ------------
-     */
-    public IBinder onBind(Intent arg0) {
-        Log.i(TAG, "CommandService onBind");
-        String id = arg0.getStringExtra(FactorySetting.EXTRA_CMDID);
-        String para = arg0.getStringExtra(FactorySetting.EXTRA_CMDPARA);
-        synchronized (mActivityRunningCmds) {
-            Command c = findRunningCommandLocked(id, para);
-            if (c != null) {
-                c.state = Command.COMMAND_STATE_START;
-            } else {
-                Log.e(TAG, "onBind can not find the pending command ");
+    CommandSource mCmdSource;
+    PrintWriter Cmdout = null;
+    Handler myHandler = new Handler() {
+        public synchronized void handleMessage(Message msg) {
+            switch (msg.what) {
+                case CHECK_COMMAND_RUNNING:
+                    //after received this command 5s, system check this activity is working or no.
+                    Command cmd = (Command) msg.obj;
+                    if (cmd != null) {
+                        synchronized (mActivityRunningCmds) {
+                            if (cmd.state == Command.COMMAND_STATE_INIT && mActivityRunningCmds.indexOf(cmd) >= 0) {
+                                Log.w(TAG, "start run " + cmd + " timeout");
+                                try {
+                                    mBinder.setResult_bool(cmd.cmdid, false);
+                                } catch (RemoteException ex) {
+                                    ex.printStackTrace();
+                                }
+                                mActivityRunningCmds.remove(cmd);
+                            }
+                        }
+                    }
+                    return;
+                default:
+                    break;
             }
+            super.handleMessage(msg);
         }
-        return mBinder;
-    }
-    /* ------------- communication with activity START---------------*/
-
-
+    };
+    private EventHub mEventHub;
     protected final ICommandService.Stub mBinder = new ICommandService.Stub() {
 
         /********************************************************
@@ -271,78 +247,71 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
             removeRunningCommand(cmdid, param);
         }
     };
+    //if a activity operation have two or more operations, here we should reserve
+    //it after first operation for next work.
+    private Command ReservedActivityCmd = null;
 
-    /**------------ onbind ------------*/
-    /* * EVENT HUB (touch pad listener function) */
+    /* * create the channel between commandservice and every activity.*/
+    public void onCreate() {
+        Log.i(TAG, "+++++++++++++++++++++++++++++++++++++++++++++++++");
+        Log.i(TAG, "FactoryTest Begin to Work!");
+        Log.i(TAG, "+++++++++++++++++++++++++++++++++++++++++++++++++");
+        //TODO  some init work
+        //init for factory middleware
+        initMiddlewareApi();
+
+        mCmdSource = new CommandSource(this, this);
+
+        CommandRxWrapper.addGlobalRXListener(this);
+
+        Context mContext = this;
+        mEventHub = new EventHub(mContext);
+        //close screen saver and sleep mode
+        //mUtilImpl.closeScreenSave2Sleep();
+        //other should use myHandler
+    }
+    /* ------------- communication with activity START---------------*/
+
+    //init for factory middleware
+    private void initMiddlewareApi() {
+        mAudioImpl = new AudioTestManagerImpl(this);
+        mInfoImpl = new InfoAccessManagerImpl(this);
+        mLocalPropImpl = new LocalPropertyManagerImpl(this);
+        mMediaImpl = new MediaTestManagerImpl(this);
+        mPicModeImpl = new PicModeManagerImpl(this);
+        mRfNetImpl = new RfNetManagerImpl(this);
+        mFactorySetting = new SettingManager();
+        mUtilImpl = new UtilManagerImpl(this);
+        mStorageImpl = new StorageManagerImpl(this);
+        mSysAccessImpl = new SysAccessManagerImpl(this);
+    }
+
+    @Override
+    public void onRXWrapperReceived(String cmdID, byte[] data) {
+        Log.d(TAG, "we received cmd id = " + cmdID + ", value is " + (data == null ? "null" : Arrays.toString(data)));
+    }
+
+    public void onDestroy() {
+        mCmdSource.finishCommandSouce();
+    }
+
     /**
      * ------------ onbind ------------
      */
-
-    //TODO, add your message business
-    protected static final int CHECK_COMMAND_RUNNING = 10000;
-    protected static final int COMMAND_STARTRUN_TIMEOUT = 5000;
-    Handler myHandler = new Handler() {
-        public synchronized void handleMessage(Message msg) {
-            switch (msg.what) {
-                case CHECK_COMMAND_RUNNING:
-                    //after received this command 5s, system check this activity is working or no.
-                    Command cmd = (Command) msg.obj;
-                    if (cmd != null) {
-                        synchronized (mActivityRunningCmds) {
-                            if (cmd.state == Command.COMMAND_STATE_INIT && mActivityRunningCmds.indexOf(cmd) >= 0) {
-                                Log.w(TAG, "start run " + cmd + " timeout");
-                                try {
-                                    mBinder.setResult_bool(cmd.cmdid, false);
-                                } catch (RemoteException ex) {
-                                    ex.printStackTrace();
-                                }
-                                mActivityRunningCmds.remove(cmd);
-                            }
-                        }
-                    }
-                    return;
-                default:
-                    break;
+    public IBinder onBind(Intent arg0) {
+        Log.i(TAG, "CommandService onBind");
+        String id = arg0.getStringExtra(FactorySetting.EXTRA_CMDID);
+        String para = arg0.getStringExtra(FactorySetting.EXTRA_CMDPARA);
+        synchronized (mActivityRunningCmds) {
+            Command c = findRunningCommandLocked(id, para);
+            if (c != null) {
+                c.state = Command.COMMAND_STATE_START;
+            } else {
+                Log.e(TAG, "onBind can not find the pending command ");
             }
-            super.handleMessage(msg);
         }
-    };
-
-    // should use command state for timeout(bind service)
-    protected class Command {
-        public static final int COMMAND_STATE_INIT = 1;
-        public static final int COMMAND_STATE_START = 2;
-        public String cmdid;
-        public String param;
-        int state;
-
-        Command(String _cmdid, String _param) {
-            cmdid = _cmdid;
-            param = _param;
-            state = COMMAND_STATE_INIT;
-        }
-
-        //should we need command running state
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (!(obj instanceof Command)) return false;
-            Command other = (Command) obj;
-            return match(other.cmdid, other.param);
-        }
-
-        public boolean match(String _cmdid, String _param) {
-            boolean sameCmdid = cmdid == null ?
-                    _cmdid == null : cmdid.equals(_cmdid);
-            boolean sameParam = param == null ?
-                    _param == null : param.equals(_param);
-            return sameCmdid && sameParam;
-        }
-
-        public String toString() {
-            return "cmdid=" + cmdid + " param=" + param;
-        }
+        return mBinder;
     }
-
 
     public void TvSetControlMsg(Command cmd, int para0, String para1, String para2) {
         if (cmd != null) {
@@ -359,41 +328,8 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
         }
     }
 
-    public void BoxSetControlMsg(Command cmd, int para0, String para1, String para2) {
-        if (cmd != null) {
-            Log.i(TAG, "cmd id is: " + cmd.cmdid);
-            String action = BoxCommandDescription.getFilterActionForCmd(cmd.cmdid);
-            if (action != null) {
-                Intent intent = new Intent(action);
-                intent.putExtra(FactorySetting.EXTRA_BROADCAST_CMDPARA, cmd.param);
-                intent.putExtra(FactorySetting.EXTRA_BROADCAST_CONTROLTYPE, para0);
-                intent.putExtra(FactorySetting.EXTRA_BROADCAST_CONTROLID, para1);
-                intent.putExtra(FactorySetting.EXTRA_BROADCAST_CONTROLPARA, para2);
-                //LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-                sendBroadcast(intent);
-            }
-        }
-    }
-
     protected void TvhandleCommandForActivity(Command c) {
         ComponentName component = TvCommandDescription.getComponentNameForCmd(c.cmdid);
-        if (component == null) {
-            Log.e(TAG, "can not run activity for " + c.cmdid);
-            return;
-        }
-        // add task running check
-        myHandler.sendMessageDelayed(myHandler.obtainMessage(CHECK_COMMAND_RUNNING, c), COMMAND_STARTRUN_TIMEOUT);
-        //launch task
-        Intent intent = new Intent();
-        intent.setComponent(component);
-        intent.putExtra(FactorySetting.EXTRA_CMDID, c.cmdid);
-        intent.putExtra(FactorySetting.EXTRA_CMDPARA, c.param);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-    }
-
-    protected void BoxhandleCommandForActivity(Command c) {
-        ComponentName component = BoxCommandDescription.getComponentNameForCmd(c.cmdid);
         if (component == null) {
             Log.e(TAG, "can not run activity for " + c.cmdid);
             return;
@@ -452,12 +388,11 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
         }
         return null;
     }
-    /* ------------- communication with activity STOP---------------*/
 
     public void setResultOuter(PrintWriter writer) {
         Cmdout = writer;
     }
-
+    /* ------------- communication with activity STOP---------------*/
 
     //TODO finish your business
     public void handleCommand(String cmdid, String param) {
@@ -513,54 +448,39 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
         return null;
     }
 
-    /* ------------- Tv Check Command Status STOP---------------*/
-    /* ------------- Box Check Command Status Start---------------*/
-    public boolean checkBoxWindowStatus() {
-        boolean ret = false;
-        synchronized (mActivityRunningCmds) {
-            for (int i = 0; i < mActivityRunningCmds.size(); i++) {
-                Command c = mActivityRunningCmds.get(i);
-                if (mBoxCd.getCmdTypeByID(c.cmdid).equals(BoxCommandDescription.CMD_TYPE_ACTIVITY_ON)) {
-                    ret = true;
-                    break;
-                }
-            }
+    // should use command state for timeout(bind service)
+    protected class Command {
+        public static final int COMMAND_STATE_INIT = 1;
+        public static final int COMMAND_STATE_START = 2;
+        public String cmdid;
+        public String param;
+        int state;
+
+        Command(String _cmdid, String _param) {
+            cmdid = _cmdid;
+            param = _param;
+            state = COMMAND_STATE_INIT;
         }
-        return ret;
+
+        //should we need command running state
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (!(obj instanceof Command)) return false;
+            Command other = (Command) obj;
+            return match(other.cmdid, other.param);
+        }
+
+        public boolean match(String _cmdid, String _param) {
+            boolean sameCmdid = cmdid == null ?
+                    _cmdid == null : cmdid.equals(_cmdid);
+            boolean sameParam = param == null ?
+                    _param == null : param.equals(_param);
+            return sameCmdid && sameParam;
+        }
+
+        public String toString() {
+            return "cmdid=" + cmdid + " param=" + param;
+        }
     }
 
-    public boolean checkBoxWindowInOperating(String cmdid) {
-        boolean ret = false;
-        if (checkBoxWindowStatus() && mBoxCd.getCmdTypeByID(cmdid).equals(BoxCommandDescription.CMD_TYPE_ACTIVITY_ON)) {
-            Log.i(TAG, "[Window]checkBoxWindowStatus(): " + checkBoxWindowStatus());
-            Log.i(TAG, "[Window]getCmdTypeByID(" + cmdid + "): " + mBoxCd.getCmdTypeByID(cmdid));
-            try {
-                mBinder.setResult_bool(cmdid, true);
-            } catch (RemoteException ex) {
-                ex.printStackTrace();
-            }
-            ret = true;
-        } else if (!checkBoxWindowStatus() && mBoxCd.getCmdTypeByID(cmdid).equals(BoxCommandDescription.CMD_TYPE_ACTIVITY_OFF)) {
-            Log.i(TAG, "[Window]checkBoxWindowStatus(): " + checkBoxWindowStatus());
-            Log.i(TAG, "[Window]getCmdTypeByID(" + cmdid + "): " + mBoxCd.getCmdTypeByID(cmdid));
-            try {
-                mBinder.setResult_bool(cmdid, true);
-            } catch (RemoteException ex) {
-                ex.printStackTrace();
-            }
-            ret = true;
-        }
-        return ret;
-    }
-
-    public Command getBoxRunningWindCmd() {
-        for (int i = 0; i < mActivityRunningCmds.size(); i++) {
-            Command c = mActivityRunningCmds.get(i);
-            if (mBoxCd.getCmdTypeByID(c.cmdid).equals(BoxCommandDescription.CMD_TYPE_ACTIVITY_ON)) {
-                return c;
-            }
-        }
-        return null;
-    }
-    /* ------------- Box Check Command Status STOP---------------*/
 }

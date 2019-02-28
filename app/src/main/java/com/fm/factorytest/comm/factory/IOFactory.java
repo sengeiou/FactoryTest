@@ -14,9 +14,14 @@ public final class IOFactory {
     private static CommunicatePort port;
 
     public synchronized static CommunicatePort initPort() {
-        if (port == null || port instanceof USBCommunicatePort) {
+        if (port == null) {
             port = new USBCommunicatePort();
         }
         return port;
+    }
+
+    public synchronized static void resetPort(){
+        port.closePort();
+        port = null;
     }
 }

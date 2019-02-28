@@ -6,9 +6,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import com.fm.factorytest.comm.server.CommandServer;
+import com.fm.factorytest.comm.vo.USB;
 import com.fm.factorytest.global.FactorySetting;
 
 import java.io.PrintWriter;
+import java.lang.ref.WeakReference;
+
+import static com.fm.factorytest.comm.base.PLMContext.usb;
 
 /* receive command from remoter, maybe network, broadcast receiver ....*/
 
@@ -45,27 +50,101 @@ public class CommandSource {
         }
     };
 
-    private Context mContext;
+    private WeakReference<Context> ctx;
+    private CommandServer mCommandServer;
 
     CommandSource(Context context, OnCommandListener listener) {
-        mContext = context;
+        ctx = new WeakReference<>(context);
         mCmdListener = listener;
         registerFakeCommand();
+
+        initUSB(context);
     }
 
 
     private void registerFakeCommand() {
-        IntentFilter filter = new IntentFilter(FAKE_COMMAN_ACTION);
-        mContext.registerReceiver(fakeCommandReceiver, filter);
+        Context context = ctx.get();
+        if (context != null) {
+            IntentFilter filter = new IntentFilter(FAKE_COMMAN_ACTION);
+            context.registerReceiver(fakeCommandReceiver, filter);
+        }
     }
 
 
     public void finishCommandSouce() {
-        mContext.unregisterReceiver(fakeCommandReceiver);
+        Context context = ctx.get();
+        if (context != null) {
+            context.unregisterReceiver(fakeCommandReceiver);
+        }
+        usb.destroy();
+        usb = null;
     }
 
     public void sendMsg(byte[] comd, int len) {
 
+    }
+
+    /**
+     * 初始化 USB 端口
+     */
+    private void initUSB(Context context) {
+        if (usb == null) {
+            usb = new USB.USBBuilder(context)
+                    .setBaudRate(115200)
+                    .setDataBits(8)
+                    .setParity(1)
+                    .setStopBits(0)
+                    .setMaxReadBytes(80)
+                    .build();
+            usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
+                @Override
+                public void onUsbConnect() {
+                    Log.d(TAG, "onUsbConnect");
+                    mCommandServer = new CommandServer();
+                    mCommandServer.init();
+                }
+
+                @Override
+                public void onUsbDisconnect() {
+                    Log.d(TAG, "onUsbDisconnect");
+                    if (mCommandServer != null) {
+                        mCommandServer.close();
+                    }
+                }
+
+                @Override
+                public void onUsbConnectFailed() {
+                    Log.d(TAG, "onUsbConnectFailed");
+                }
+
+                @Override
+                public void onPermissionGranted() {
+                    Log.d(TAG, "onPermissionGranted");
+                }
+
+                @Override
+                public void onPermissionRefused() {
+                    Log.d(TAG, "onPermissionRefused");
+                }
+
+                @Override
+                public void onDriverNotSupport() {
+                    Log.d(TAG, "onDriverNotSupport");
+                }
+
+                @Override
+                public void onWriteDataFailed(String s) {
+                    Log.d(TAG, "onWriteDataFailed == " + s);
+                }
+
+                @Override
+                public void onWriteSuccess(int i) {
+                    Log.d(TAG, "onWriteSuccess");
+                }
+            });
+            //调用此方法先触发一次USB检测
+            usb.afterGetUsbPermission(usb.getTargetDevice());
+        }
     }
 
     public interface OnCommandListener {

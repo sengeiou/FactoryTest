@@ -35,7 +35,6 @@ public class FactoryLauncher extends Activity {
     private Context mContext;
     private StartPostSale mStartPostSale = null;
 
-    private CommandServer mCommandServer;
 
     /**
      * Called when the activity is first created.
@@ -70,8 +69,6 @@ public class FactoryLauncher extends Activity {
         //set default input
         android.provider.Settings.Secure.putString(mContext.getContentResolver(), "default_input_method", "com.baidu.input/.ImeService");
         mHandler = new Handler();
-
-        startService(new Intent(this, FengTVService.class));
     }
 
     @Override
@@ -125,7 +122,6 @@ public class FactoryLauncher extends Activity {
             case 19:
                 SysAccessManagerAbs sysAbs = new SysAccessManagerImpl(this);
                 Log.d(TAG, "version = " + sysAbs.readDLPVersion());
-                initUSB();
                 break;
             case 20:
                 break;
@@ -154,68 +150,7 @@ public class FactoryLauncher extends Activity {
         MediaSessionLegacyHelper.getHelper(this).sendAdjustVolumeBy(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
     }
 
-    /**
-     * 初始化 USB 端口
-     */
-    private void initUSB() {
-        if (usb == null) {
-            usb = new USB.USBBuilder(this)
-                    .setBaudRate(115200)
-                    .setDataBits(8)
-                    .setParity(1)
-                    .setStopBits(0)
-                    .setMaxReadBytes(80)
-                    .build();
-            usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
-                @Override
-                public void onUsbConnect() {
-                    Log.d(TAG, "onUsbConnect");
-                    mCommandServer = new CommandServer();
-                    mCommandServer.init(initPort());
-                }
 
-                @Override
-                public void onUsbDisconnect() {
-                    Log.d(TAG, "onUsbDisconnect");
-                    if (mCommandServer != null) {
-                        mCommandServer.close();
-                    }
-                }
-
-                @Override
-                public void onUsbConnectFailed() {
-                    Log.d(TAG, "onUsbConnectFailed");
-                }
-
-                @Override
-                public void onPermissionGranted() {
-                    Log.d(TAG, "onPermissionGranted");
-                }
-
-                @Override
-                public void onPermissionRefused() {
-                    Log.d(TAG, "onPermissionRefused");
-                }
-
-                @Override
-                public void onDriverNotSupport() {
-                    Log.d(TAG, "onDriverNotSupport");
-                }
-
-                @Override
-                public void onWriteDataFailed(String s) {
-                    Log.d(TAG, "onWriteDataFailed == " + s);
-                }
-
-                @Override
-                public void onWriteSuccess(int i) {
-                    Log.d(TAG, "onWriteSuccess");
-                }
-            });
-        }
-        //调用此方法先触发一次USB检测
-        usb.afterGetUsbPermission(usb.getTargetDevice());
-    }
 
     /**
      * \\\\\\\\\\\\\\\\\\\\\\\\\\

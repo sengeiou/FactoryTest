@@ -15,10 +15,13 @@ import com.usbserial.driver.UsbSerialPort;
 import com.usbserial.driver.UsbSerialProber;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
- * 串口通讯
+ * USB 管理
+ * 包括 usb device 打开
+ * @author lijie
  */
 public class USB {
     private static final String TAG = "USB";
@@ -26,11 +29,15 @@ public class USB {
     /**
      * 通讯端口
      */
-    public UsbSerialPort port;
+    private volatile UsbSerialPort port;
+    /**
+     * USB Connection
+     */
+    private volatile UsbDeviceConnection usbConn = null;
     /**
      * 上下文对象
      */
-    private Context ctx;
+    private WeakReference<Context> ctx;
     /**
      * USB Manager
      */
@@ -75,7 +82,7 @@ public class USB {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
-                afterGetUsbPermission(null);
+                afterGetUsbPermission(getTargetDevice());
             } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
                 disConnectDevice();
             } else if (ACTION_USB_PERMISSION.equals(action)) {
@@ -109,7 +116,7 @@ public class USB {
         DTR = builder.DTR;
         RTS = builder.RTS;
 
-        this.ctx = ctx;
+        this.ctx = new WeakReference<>(ctx);
         usbManager = (UsbManager) ctx.getSystemService(Context.USB_SERVICE);
     }
 
@@ -126,7 +133,7 @@ public class USB {
      */
     public void writeData(byte[] data, int timeoutMills) {
         try {
-            if (port != null) {
+            if (port != null && usbConn != null) {
                 Log.e(TAG, "write start");
                 int num = port.write(data, timeoutMills);
                 Log.e(TAG, "write end");
@@ -148,6 +155,25 @@ public class USB {
     }
 
     /**
+     * 读取端口数据
+     * @param recvBuffer 数据接收
+     * @param timeoutMills 超时时间
+     * @return real length of read ,-1 is read error
+     */
+    public int readData(byte[] recvBuffer, int timeoutMills) {
+        int size = -1;
+        if (port != null && usbConn != null) {
+            try {
+                size = port.read(recvBuffer, timeoutMills);
+            } catch (IOException e) {
+                e.printStackTrace();
+                size = -1;
+            }
+        }
+        return size;
+    }
+
+    /**
      * 注册监听
      */
     private void register() {
@@ -155,8 +181,9 @@ public class USB {
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         usbFilter.addAction(ACTION_USB_PERMISSION);
-        if (ctx != null) {
-            ctx.registerReceiver(mUsbPermissionActionReceiver, usbFilter);
+        Context context = ctx.get();
+        if (context != null) {
+            context.registerReceiver(mUsbPermissionActionReceiver, usbFilter);
         }
     }
 
@@ -164,11 +191,13 @@ public class USB {
      * 取消注册
      */
     public void destroy() {
-        if (ctx != null) {
-            ctx.unregisterReceiver(mUsbPermissionActionReceiver);
+        Context context = ctx.get();
+        if (context != null) {
+            context.unregisterReceiver(mUsbPermissionActionReceiver);
         }
         disConnectDevice();
         onUsbChangeListener = null;
+        ctx.clear();
         ctx = null;
     }
 
@@ -184,6 +213,10 @@ public class USB {
                 e.printStackTrace();
             }
         }
+        if (usbConn != null){
+            usbConn.close();
+            usbConn = null;
+        }
         if (onUsbChangeListener != null) {
             onUsbChangeListener.onUsbDisconnect();
         }
@@ -193,8 +226,9 @@ public class USB {
      * 请求USB设备权限
      */
     private void requestPermission() {
-        if (ctx != null) {
-            PendingIntent mPermissionIntent = PendingIntent.getBroadcast(ctx, 0, new Intent(ACTION_USB_PERMISSION), 0);
+        Context context = ctx.get();
+        if (context != null) {
+            PendingIntent mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
             //here do emulation to ask all connected usb device for permission
 
             for (final UsbDevice usbDevice : usbManager.getDeviceList().values()) {
@@ -209,6 +243,7 @@ public class USB {
 
     /**
      * 打开 USB端口
+     *
      * @param usbDevice usb 设备
      */
     public void afterGetUsbPermission(UsbDevice usbDevice) {
@@ -224,8 +259,8 @@ public class USB {
         // Open a connection to the first available driver.
         UsbSerialDriver driver = availableDrivers.get(0);
         try {
-            UsbDeviceConnection connection = usbManager.openDevice(driver.getDevice());
-            if (connection == null) {
+            usbConn = usbManager.openDevice(driver.getDevice());
+            if (usbConn == null) {
                 if (usbDevice == null) {
                     requestPermission();
                 }
@@ -234,7 +269,7 @@ public class USB {
             // Read some data! Most have just one port (port 0).
             port = driver.getPorts().get(0);
             try {
-                port.open(connection);
+                port.open(usbConn);
                 port.setParameters(BAUD_RATE, DATA_BITS, STOP_BITS, PARITY);
                 port.setDTR(DTR);
                 port.setRTS(RTS);
@@ -254,6 +289,7 @@ public class USB {
 
     /**
      * 获取目标端口
+     *
      * @return USB device
      */
     public UsbDevice getTargetDevice() {

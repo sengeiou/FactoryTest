@@ -2,10 +2,9 @@ package com.fm.factorytest.comm.bean;
 
 import com.fm.factorytest.comm.base.CommunicatePort;
 
-import java.io.IOException;
 import java.util.Arrays;
 
-import static com.fm.factorytest.comm.base.PLMContext.*;
+import static com.fm.factorytest.comm.base.PLMContext.usb;
 
 
 public class USBCommunicatePort extends CommunicatePort {
@@ -14,23 +13,19 @@ public class USBCommunicatePort extends CommunicatePort {
 
     @Override
     public int readData(byte[] recvBuffer, int off, int len) {
-        int actual;
-        try {
+        int actual = -1;
+        if (usb != null) {
             if (!isDataEmpty(tempData)) {
                 actual = available;
             } else {
-                actual = usb.port.read(tempData, 300);
+                actual = usb.readData(tempData, 300);
             }
             if (actual > len) {
                 return -1;
             }
             System.arraycopy(tempData, 0, recvBuffer, off, actual);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            actual = -1;
+            Arrays.fill(tempData, (byte) 0);
         }
-        Arrays.fill(tempData, (byte) 0);
         return actual;
     }
 
@@ -46,16 +41,12 @@ public class USBCommunicatePort extends CommunicatePort {
 
     @Override
     public void closePort() {
-        usb.destroy();
+
     }
 
     @Override
     public int dataAvailable() {
-        try {
-            available = usb.port.read(tempData, 300);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        available = usb.readData(tempData, 300);
         return available;
     }
 
