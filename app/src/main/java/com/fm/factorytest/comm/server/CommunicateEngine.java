@@ -28,9 +28,9 @@ import static com.fm.factorytest.comm.server.CommandServer.sendList;
  * @create 2018-10-30 18:23
  **/
 public class CommunicateEngine extends Thread {
-    private CommunicatePort commPort;
     //通讯线程运行状态
     private static volatile boolean running = true;
+    private CommunicatePort commPort;
     //接收数据长度
     private int recvLen = 0;
     //读取字节数
@@ -73,7 +73,8 @@ public class CommunicateEngine extends Thread {
                                 //包含完整数据帧
                                 if ((cmdLen = (FRAME_LEN_MIN + recvBuff[recvCMDStart + 4])) <= recvLen) {
                                     //CRC 校验 pass
-                                    if (recvBuff[recvCMDStart + cmdLen - 2] == CommandFactory.calCRC(recvBuff, recvCMDStart, cmdLen)) {
+                                    byte crc = CommandFactory.calCRC(recvBuff, recvCMDStart, cmdLen);
+                                    if (recvBuff[recvCMDStart + cmdLen - 2] == crc) {
                                         System.out.println("Received new Command data !!");
 
                                         receivedCommand(recvBuff, recvCMDStart, cmdLen);
@@ -83,8 +84,7 @@ public class CommunicateEngine extends Thread {
                                     } else {
                                         System.out.println("CRC is not correct !!");
                                         System.out.println("received CRC is " + recvBuff[recvCMDStart + cmdLen - 2]);
-                                        System.out.println("calc CRC is " + CommandFactory.calCRC(recvBuff, recvCMDStart, cmdLen));
-                                        System.out.println(Arrays.toString(recvBuff));
+                                        System.out.println("calc CRC is " + crc);
                                         byte[] nack = generateACKCMD(false, recvBuff[recvCMDStart + 2], recvBuff[recvCMDStart + 3]);
                                         sendList.add(new Command(nack));
                                         break;

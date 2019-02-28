@@ -84,19 +84,25 @@ public class CommandTxWrapper extends CommandWrapper {
                     cmd.setCmdType(cmdType);
 
                     PLMContext.commandServer.sendCommand(cmd);
-                    SystemClock.sleep(500);
-
-                    Command ack = null;
-                    int count = 0;
-                    while (ack == null && count < 3) {
-                        SystemClock.sleep(50);
-                        ack = CommandServer.ackList.get(cmdID);
-                        count++;
-                    }
-                    if (count == 3) {
-                        System.out.println("未收到 ACK 回复，取消后续发送");
-                    } else {
-                        CommandServer.ackList.remove(cmdID);
+                    SystemClock.sleep(300);
+                    //重发机制
+                    for (int i = 0; i < 3; i++) {
+                        Command ack = null;
+                        int count = 0;
+                        while (ack == null && count < 3) {
+                            SystemClock.sleep(50);
+                            ack = CommandServer.ackList.get(cmdID);
+                            count++;
+                        }
+                        if (ack == null) {
+                            System.out.println("未收到 ACK 回复，重复发送");
+                            PLMContext.commandServer.sendCommand(cmd);
+                            SystemClock.sleep(300);
+                        } else {
+                            System.out.println("收到 ACK 回复");
+                            CommandServer.ackList.remove(cmdID);
+                            break;
+                        }
                     }
                 }
                 cmdList.clear();
