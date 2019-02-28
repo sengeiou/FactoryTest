@@ -24,20 +24,29 @@ public class KeyStoneUtil {
     }
 
     public static boolean setKeyStoneMode(String param) throws RemoteException {
+        int res = -1;
         if (keystoneService == null) {
             keystoneService = getKeyStoneService();
         }
-        int res = -1;
+        if (keystoneService == null) {
+            return false;
+        }
+        Log.d(TAG, "0 is ON param=" + param);
         if (param.equals("0")) {
             //enable keystone mode
-            keystoneService.SetKeystoneInit();
             res = keystoneService.SetKeystoneSelectMode(KeystoneManager.KEYSTONE_8_POINTS_MODE);
-        }
-        if (param.equals("1")) {
+            keystoneService.SetKeystoneInit();
+            return true;
+        }else if (param.equals("1")) {
             res = keystoneService.SetKeystoneReset();
+
+            keystoneService.SetKeystoneSave();
+            keystoneService.SetKeystoneLoad();
+            keystoneService.SetKeystoneCancel();
+            return true;
+        }else{
+            return false;
         }
-        Log.d(TAG, "0 is ON param=" + param + " res=" + res);
-        return res == 0;
     }
 
     public static boolean setKeyStoneDirect(String param) throws RemoteException {
@@ -61,7 +70,6 @@ public class KeyStoneUtil {
                 Integer.parseInt(datas[1]),
                 Integer.parseInt(datas[2])
         );
-        keystoneService.SetKeystoneLoad();
 
         KeystonePoint[] points = keystoneService.GetKeystoneSets();
         for (KeystonePoint point : points) {
@@ -103,8 +111,6 @@ public class KeyStoneUtil {
         points[6].y = 2000;
 
         int res = keystoneService.SetKeystoneSets(points);
-
-        keystoneService.SetKeystoneLoad();
 
         for (KeystonePoint point : points) {
             Log.d(TAG, "new KeystonePoint: " + point.toString());
