@@ -71,11 +71,6 @@ public class KeyStoneUtil {
                 Integer.parseInt(datas[2])
         );
 
-        KeystonePoint[] points = keystoneService.GetKeystoneSets();
-        for (KeystonePoint point : points) {
-            Log.d(TAG, "KeystonePoint: " + point.toString());
-        }
-
         Log.d(TAG, "SetKeystoneSet " + res);
         return true;
     }

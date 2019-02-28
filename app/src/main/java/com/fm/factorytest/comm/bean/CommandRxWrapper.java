@@ -123,10 +123,13 @@ public class CommandRxWrapper extends CommandWrapper {
         int curPos = 0;
 
         for (int i = 0; i < cmdList.size(); i++) {
-            temp = map.get(i).getData();
-            if (temp != null) {
-                System.arraycopy(temp, 0, data, curPos, temp.length);
-                curPos += temp.length;
+            Command cmd = map.get(i);
+            if (cmd != null){
+                temp = cmd.getData();
+                if (temp != null) {
+                    System.arraycopy(temp, 0, data, curPos, temp.length);
+                    curPos += temp.length;
+                }
             }
         }
     }
