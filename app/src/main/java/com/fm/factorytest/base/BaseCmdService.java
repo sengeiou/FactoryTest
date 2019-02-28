@@ -12,9 +12,6 @@ import android.os.RemoteException;
 import android.util.Log;
 
 import com.fm.factorytest.ICommandService;
-import com.fm.factorytest.comm.base.GlobalCommandReceiveListener;
-import com.fm.factorytest.comm.bean.CommandRxWrapper;
-import com.fm.factorytest.global.BoxCommandDescription;
 import com.fm.factorytest.global.FactorySetting;
 import com.fm.factorytest.global.TvCommandDescription;
 import com.fm.middlewareimpl.global.SettingManager;
@@ -38,14 +35,12 @@ import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 import com.fm.middlewareimpl.interf.UtilManagerAbs;
 
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 //import android.support.v4.content.LocalBroadcastManager;
 
 
-public class BaseCmdService extends Service implements CommandSource.OnCommandListener, GlobalCommandReceiveListener {
+public class BaseCmdService extends Service implements CommandSource.OnCommandListener {
     protected static final String TAG = "FactoryTest";
     /**
      * ------------ onbind ------------
@@ -56,7 +51,6 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
     protected static final int COMMAND_STARTRUN_TIMEOUT = 5000;
     final ArrayList<Command> mActivityRunningCmds = new ArrayList<Command>();
     public TvCommandDescription mTvCd = TvCommandDescription.getInstance();
-    public BoxCommandDescription mBoxCd = BoxCommandDescription.getInstance();
     protected boolean TouchFlag = false;
     //init for factory middleware
     //init for factory middleware
@@ -130,116 +124,26 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
         /* ------------- command return packing START ---------------*/
         public void setResult_string(String cmdid, String resultMsg) throws RemoteException {
             Log.i(TAG, "CommandService setResult_String: " + cmdid + " " + resultMsg);
-
-            int id = -1;
-            try {
-                id = Integer.parseInt(cmdid, 16);
-            } catch (NumberFormatException e) {
+            byte[] data = null;
+            if (resultMsg != null) {
+                data = resultMsg.getBytes();
             }
-
-            int send_len = resultMsg.length();
-            int send_time = send_len / 64;
-            int last_len = send_len % 64;
-            int len = 64;
-            for (int n = 0; n <= send_time; n++) {
-                if (n == send_time)
-                    len = last_len;
-                byte[] comd = new byte[len + 5];
-                byte[] msg = new byte[len];
-                try {
-                    msg = resultMsg.getBytes("ASCII");
-                } catch (UnsupportedEncodingException ex) {
-                }
-                comd[0] = (byte) ((id & 0xFF00) >> 8);
-                comd[1] = (byte) (id & 0xFF);
-                comd[2] = (byte) len;
-                for (int i = 0; i < len; i++) {
-                    comd[i + 3] = msg[n * 64 + i];
-                }
-                comd[len + 3] = (byte) n;
-                if (last_len != 0)
-                    comd[len + 4] = (byte) (send_time + 1);
-                else
-                    comd[len + 4] = (byte) (send_time);
-                mCmdSource.sendMsg(comd, len + 5);
-                //wait 5ms for send next command
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            mCmdSource.sendMsg(cmdid, data);
         }
 
         public void setResult_bool(String cmdid, boolean result) throws RemoteException {
-            Log.i(TAG, "CommandService setResult_boolean: " + cmdid + " " + result);
-
-            int id = -1;
-            try {
-                id = Integer.parseInt(cmdid, 16);
-            } catch (NumberFormatException e) {
+            byte[] data = new byte[1];
+            if (result) {
+                data[0] = 0;
+            } else {
+                data[0] = 1;
             }
-
-            byte[] comd_bool = new byte[6];
-            comd_bool[0] = (byte) ((id & 0xFF00) >> 8);
-            comd_bool[1] = (byte) (id & 0xFF);
-            comd_bool[2] = 1;
-            if (result)
-                comd_bool[3] = 0;
-            else
-                comd_bool[3] = 1;
-            comd_bool[4] = 0;
-            comd_bool[5] = 1;
-            for (int i = 0; i < 6; i++) {
-                if (comd_bool[i] < 0) {
-                    int temp = 0xff + (int) comd_bool[i] + 1;
-                    Log.i(TAG, "CommandService setResult send to uartservice : comd[" + i + "] is :" + temp);
-                } else {
-                    Log.i(TAG, "CommandService setResult send to uartservice : comd[" + i + "] is :" + comd_bool[i]);
-                }
-            }
-            mCmdSource.sendMsg(comd_bool, 6);
+            mCmdSource.sendMsg(cmdid, data);
         }
 
 
         public void setResult_byte(String cmdid, byte[] resultMsg) throws RemoteException {
-            Log.i(TAG, "CommandService setResult_byte: " + cmdid + " " + resultMsg);
-            Log.i(TAG, "CommandService setResult_byte: length :" + "[" + resultMsg.length + "]");
-
-            int id = -1;
-            try {
-                id = Integer.parseInt(cmdid, 16);
-            } catch (NumberFormatException e) {
-            }
-
-            int send_len = resultMsg.length;
-            int send_time = send_len / 64;
-            int last_len = send_len % 64;
-            int len = 64;
-            for (int n = 0; n <= send_time; n++) {
-                if (n == send_time)
-                    len = last_len;
-                byte[] comd = new byte[len + 5];
-
-                comd[0] = (byte) ((id & 0xFF00) >> 8);
-                comd[1] = (byte) (id & 0xFF);
-                comd[2] = (byte) len;
-                for (int i = 0; i < len; i++) {
-                    comd[i + 3] = resultMsg[n * 64 + i];
-                }
-                comd[len + 3] = (byte) n;
-                if (last_len != 0)
-                    comd[len + 4] = (byte) (send_time + 1);
-                else
-                    comd[len + 4] = (byte) (send_time);
-                mCmdSource.sendMsg(comd, len + 5);
-                //wait 5ms for send next command
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            mCmdSource.sendMsg(cmdid, resultMsg);
         }
         /* ------------- command return packing STOP---------------*/
 
@@ -262,8 +166,6 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
 
         mCmdSource = new CommandSource(this, this);
 
-        CommandRxWrapper.addGlobalRXListener(this);
-
         Context mContext = this;
         mEventHub = new EventHub(mContext);
         //close screen saver and sleep mode
@@ -284,11 +186,6 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
         mUtilImpl = new UtilManagerImpl(this);
         mStorageImpl = new StorageManagerImpl(this);
         mSysAccessImpl = new SysAccessManagerImpl(this);
-    }
-
-    @Override
-    public void onRXWrapperReceived(String cmdID, byte[] data) {
-        Log.d(TAG, "we received cmd id = " + cmdID + ", value is " + (data == null ? "null" : Arrays.toString(data)));
     }
 
     public void onDestroy() {

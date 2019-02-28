@@ -6,18 +6,24 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import com.fm.factorytest.comm.base.GlobalCommandReceiveListener;
+import com.fm.factorytest.comm.base.PLMContext;
+import com.fm.factorytest.comm.bean.CommandRxWrapper;
+import com.fm.factorytest.comm.bean.CommandTxWrapper;
 import com.fm.factorytest.comm.server.CommandServer;
 import com.fm.factorytest.comm.vo.USB;
 import com.fm.factorytest.global.FactorySetting;
 
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 
 import static com.fm.factorytest.comm.base.PLMContext.usb;
+import static com.fm.factorytest.comm.factory.CommandFactory.CMD_FUNC;
 
 /* receive command from remoter, maybe network, broadcast receiver ....*/
 
-public class CommandSource {
+public class CommandSource implements GlobalCommandReceiveListener {
     private static final String FAKE_COMMAN_ACTION = "com.duokan.command.fake";
     private static final String TAG = "FactoryCommandSource";
     private OnCommandListener mCmdListener;
@@ -27,8 +33,6 @@ public class CommandSource {
             if (action != null && action.equals(FAKE_COMMAN_ACTION)) {
                 String para0 = intent.getStringExtra(FactorySetting.EXTRA_CMDID);
                 String para1 = intent.getStringExtra(FactorySetting.EXTRA_CMDPARA);
-                //String paradbg = intent.getStringExtra(FactorySetting.EXTRA_CMDPARAMDBG);
-                // if (paradbg != null) {
                 para1 = stringToAscii(para1);
                 // }
                 Log.i(TAG, "Got FAKE_COMMAN_ACTION, para0 : [ " + para0 + " ], para1 : [" + para1 + " ]");
@@ -51,7 +55,7 @@ public class CommandSource {
     };
 
     private WeakReference<Context> ctx;
-    private CommandServer mCommandServer;
+    private CommandTxWrapper txWrapper;
 
     CommandSource(Context context, OnCommandListener listener) {
         ctx = new WeakReference<>(context);
@@ -59,6 +63,8 @@ public class CommandSource {
         registerFakeCommand();
 
         initUSB(context);
+
+        CommandRxWrapper.addGlobalRXListener(this);
     }
 
 
@@ -80,8 +86,9 @@ public class CommandSource {
         usb = null;
     }
 
-    public void sendMsg(byte[] comd, int len) {
-
+    public void sendMsg(String cmdID, byte[] data) {
+        txWrapper = new CommandTxWrapper(cmdID, data, CMD_FUNC);
+        txWrapper.send();
     }
 
     /**
@@ -100,15 +107,15 @@ public class CommandSource {
                 @Override
                 public void onUsbConnect() {
                     Log.d(TAG, "onUsbConnect");
-                    mCommandServer = new CommandServer();
-                    mCommandServer.init();
+                    PLMContext.commandServer = new CommandServer();
+                    PLMContext.commandServer.init();
                 }
 
                 @Override
                 public void onUsbDisconnect() {
                     Log.d(TAG, "onUsbDisconnect");
-                    if (mCommandServer != null) {
-                        mCommandServer.close();
+                    if (PLMContext.commandServer != null) {
+                        PLMContext.commandServer.close();
                     }
                 }
 
@@ -145,6 +152,20 @@ public class CommandSource {
             //调用此方法先触发一次USB检测
             usb.afterGetUsbPermission(usb.getTargetDevice());
         }
+    }
+
+    @Override
+    public void onRXWrapperReceived(String cmdID, byte[] data) {
+        Log.d(TAG, "we received cmd id = " + cmdID + ", value is " + (data == null ? "null" : Arrays.toString(data)));
+        String P = "";
+        if (data != null) {
+            StringBuilder par = new StringBuilder();
+            for (int i = 0; i < data.length; i++) {
+                par.append(data[i]).append(",");
+            }
+            P = par.toString();
+        }
+        mCmdListener.handleCommand(cmdID,P);
     }
 
     public interface OnCommandListener {

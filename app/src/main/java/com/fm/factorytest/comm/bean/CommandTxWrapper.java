@@ -1,6 +1,7 @@
 package com.fm.factorytest.comm.bean;
 
 
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
 import com.fm.factorytest.comm.base.CommandWrapper;
@@ -27,6 +28,7 @@ import static com.fm.factorytest.comm.factory.CommandFactory.generateCommandBySo
 public class CommandTxWrapper extends CommandWrapper {
     public static final int DATA_FILE = 0;
     public static final int DATA_STRING = 1;
+    public static final int DATA_BYTES = 2;
 
     private byte cmdType;
 
@@ -38,8 +40,8 @@ public class CommandTxWrapper extends CommandWrapper {
         cmdList = new LinkedList<>();
 
         this.cmdID = cmdID.toUpperCase();
-        cmd_left = Byte.parseByte(cmdID.substring(0, 2), 16);
-        cmd_right = Byte.parseByte(cmdID.substring(2, 4), 16);
+        cmd_left = (byte) Integer.parseInt(cmdID.substring(0, 2), 16);
+        cmd_right = (byte) Integer.parseInt(cmdID.substring(2, 4), 16);
         this.cmdType = (byte) cmdType;
 
         if (data == null) {
@@ -57,24 +59,45 @@ public class CommandTxWrapper extends CommandWrapper {
         }
     }
 
+    public CommandTxWrapper(@NonNull String cmdID, byte[] data, int cmdType) {
+        cmdList = new LinkedList<>();
+        this.cmdID = cmdID.toUpperCase();
+        cmd_left = (byte) Integer.parseInt(cmdID.substring(0, 2), 16);
+        cmd_right = (byte) Integer.parseInt(cmdID.substring(2, 4), 16);
+        this.cmdType = (byte) cmdType;
+        if (data == null) {
+            Command cmd = generateCommandByID(cmdID);
+            cmdList.add(cmd);
+        } else {
+            bytesSplit(data);
+        }
+    }
+
     public void send() {
         new Thread() {
             @Override
             public void run() {
                 Command cmd;
                 System.out.println("数据帧数量：" + cmdList.size());
-                while (cmdList.size() > 0) {
+                while (cmdList.size() > 0 && PLMContext.commandServer != null) {
                     cmd = cmdList.pop();
                     cmd.setCmdType(cmdType);
 
                     PLMContext.commandServer.sendCommand(cmd);
-                    PLMContext.sleep(50);
-                    Command ack = CommandServer.ackList.get(cmdID);
-                    if (ack == null) {
-                        System.out.println("未收到 ACK 回复");
-                        break;
+                    SystemClock.sleep(500);
+
+                    Command ack = null;
+                    int count = 0;
+                    while (ack == null && count < 3) {
+                        SystemClock.sleep(50);
+                        ack = CommandServer.ackList.get(cmdID);
+                        count++;
                     }
-                    CommandServer.ackList.remove(cmdID);
+                    if (count == 3) {
+                        System.out.println("未收到 ACK 回复，取消后续发送");
+                    } else {
+                        CommandServer.ackList.remove(cmdID);
+                    }
                 }
                 cmdList.clear();
             }

@@ -18,9 +18,9 @@ import java.util.Timer;
  * @create 2019-01-07 18:20
  **/
 public class CommandServer {
-    public static LinkedList<Command> sendList = new LinkedList<>();
+    public static volatile LinkedList<Command> sendList = new LinkedList<>();
     public static LinkedList<CommandRxWrapper> dataList = new LinkedList<>();
-    public static Map<String, Command> ackList = new HashMap<>();
+    public static volatile Map<String, Command> ackList = new HashMap<>();
     private static CommandRxWrapper wrapper = null;
     private CommunicateEngine ce;
     private Timer heartBeat;
