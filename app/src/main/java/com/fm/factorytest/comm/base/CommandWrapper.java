@@ -4,6 +4,7 @@ import com.fm.factorytest.comm.bean.Command;
 import com.fm.factorytest.comm.vo.CommandVO;
 
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Command Wrapper
@@ -13,7 +14,7 @@ import java.util.LinkedList;
  **/
 public abstract class CommandWrapper {
     protected String cmdID = "";
-    protected LinkedList<Command> cmdList;
+    protected ConcurrentLinkedQueue<Command> cmdList;
     protected CommandVO cmdVO;
     protected byte cmd_left;
     protected byte cmd_right;

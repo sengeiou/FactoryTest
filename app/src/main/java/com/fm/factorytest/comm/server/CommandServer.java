@@ -5,9 +5,7 @@ import com.fm.factorytest.comm.bean.Command;
 import com.fm.factorytest.comm.bean.CommandRxWrapper;
 import com.fm.factorytest.comm.factory.IOFactory;
 
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;

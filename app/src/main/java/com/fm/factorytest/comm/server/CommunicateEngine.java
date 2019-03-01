@@ -30,6 +30,8 @@ import static com.fm.factorytest.comm.server.CommandServer.sendList;
 public class CommunicateEngine extends Thread {
     //通讯线程运行状态
     private static volatile boolean running = true;
+
+    private static volatile boolean stop = false;
     private CommunicatePort commPort;
     //接收数据长度
     private int recvLen = 0;
@@ -51,23 +53,30 @@ public class CommunicateEngine extends Thread {
     public CommunicateEngine(@NonNull CommunicatePort port) {
         commPort = port;
         running = true;
+        stop = false;
     }
 
     @Override
     public void run() {
         try {
 
-            while (running) {
+            while (running && !stop) {
 
                 if (commPort.dataAvailable() > 0) {
                     //根据当前缓冲区剩余数据累加读取
                     recvBytes = commPort.readData(recvBuff, recvLen, bufferLen - recvLen);
                     recvLen += recvBytes;
-
+                    System.out.println("receiving  data ");
                     while (true) {
                         // 如果长度大于空数据帧长度,开始解析
                         if (recvLen >= FRAME_LEN_MIN) {
                             int cmdLen;
+
+                            if (stop) {
+                                running = false;
+                                Arrays.fill(recvBuff,(byte) 0);
+                                break;
+                            }
 
                             if (recvBuff[recvCMDStart] == FRAME_HEAD) {
                                 //包含完整数据帧
@@ -112,6 +121,7 @@ public class CommunicateEngine extends Thread {
                     }
 
                 } else {
+                    System.out.println("sending  data ");
                     while (sendList.size() > 0) {
                         Command cmd = sendList.poll();
                         if (cmd != null) {
@@ -198,5 +208,6 @@ public class CommunicateEngine extends Thread {
 
     public void killEngine() {
         running = false;
+        stop = true;
     }
 }
