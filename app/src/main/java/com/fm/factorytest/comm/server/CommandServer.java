@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Timer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 /**
@@ -18,9 +20,10 @@ import java.util.Timer;
  * @create 2019-01-07 18:20
  **/
 public class CommandServer {
-    public static volatile LinkedList<Command> sendList = new LinkedList<>();
+    //public static volatile LinkedList<Command> sendList = new LinkedList<>();
+    public static volatile ConcurrentLinkedQueue<Command> sendList = new ConcurrentLinkedQueue<>();
     public static LinkedList<CommandRxWrapper> dataList = new LinkedList<>();
-    public static volatile Map<String, Command> ackList = new HashMap<>();
+    public static volatile ConcurrentHashMap<String, Command> ackList = new ConcurrentHashMap<>();
     private static CommandRxWrapper wrapper = null;
     private CommunicateEngine ce;
     private Timer heartBeat;
@@ -75,12 +78,8 @@ public class CommandServer {
         synchronized (this) {
             sendList.add(cmd);
         }
-
     }
 
-    public void sendCommandFirst(Command cmd) {
-        sendList.addFirst(cmd);
-    }
 
     /**
      * close
