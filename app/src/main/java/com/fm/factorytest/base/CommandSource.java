@@ -6,20 +6,21 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
-import com.fm.factorytest.comm.base.GlobalCommandReceiveListener;
-import com.fm.factorytest.comm.base.PLMContext;
-import com.fm.factorytest.comm.bean.CommandRxWrapper;
-import com.fm.factorytest.comm.bean.CommandTxWrapper;
-import com.fm.factorytest.comm.server.CommandServer;
-import com.fm.factorytest.comm.vo.USB;
 import com.fm.factorytest.global.FactorySetting;
+import com.fm.fengmicomm.usb.USB;
+import com.fm.fengmicomm.usb.USBContext;
+import com.fm.fengmicomm.usb.callback.GlobalCommandReceiveListener;
+import com.fm.fengmicomm.usb.command.CommandRxWrapper;
+import com.fm.fengmicomm.usb.command.CommandTxWrapper;
+import com.fm.fengmicomm.usb.task.UsbCommTask;
+import com.fm.fengmicomm.usb.task.UsbProtocolTask;
 
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
-import static com.fm.factorytest.comm.base.PLMContext.usb;
-import static com.fm.factorytest.comm.factory.CommandFactory.CMD_FUNC;
+import static com.fm.fengmicomm.usb.USBContext.usb;
+
 
 /* receive command from remoter, maybe network, broadcast receiver ....*/
 
@@ -87,7 +88,8 @@ public class CommandSource implements GlobalCommandReceiveListener {
     }
 
     public void sendMsg(String cmdID, byte[] data) {
-        txWrapper = new CommandTxWrapper(cmdID, data, CMD_FUNC);
+        txWrapper = CommandTxWrapper.initTX(cmdID, null,
+                data, CommandTxWrapper.DATA_BYTES, USBContext.TYPE_FUNC);
         txWrapper.send();
     }
 
@@ -107,16 +109,16 @@ public class CommandSource implements GlobalCommandReceiveListener {
                 @Override
                 public void onUsbConnect() {
                     Log.d(TAG, "onUsbConnect");
-                    PLMContext.commandServer = new CommandServer();
-                    PLMContext.commandServer.init();
+                    if (USBContext.usbProtocolTask != null || USBContext.usbCommTask != null) {
+                        killServer();
+                    }
+                    startServer();
                 }
 
                 @Override
                 public void onUsbDisconnect() {
+                    killServer();
                     Log.d(TAG, "onUsbDisconnect");
-                    if (PLMContext.commandServer != null) {
-                        PLMContext.commandServer.close();
-                    }
                 }
 
                 @Override
@@ -166,6 +168,24 @@ public class CommandSource implements GlobalCommandReceiveListener {
             P = par.toString();
         }
         mCmdListener.handleCommand(cmdID,P);
+    }
+
+    private void killServer() {
+        USBContext.usbCommTask.killComm();
+        USBContext.usbCommTask = null;
+
+        USBContext.usbProtocolTask.killProtocol();
+        USBContext.usbProtocolTask = null;
+    }
+
+    private void startServer() {
+        USBContext.usbProtocolTask = new UsbProtocolTask();
+        USBContext.usbProtocolTask.taskInit();
+        USBContext.usbProtocolTask.start();
+
+        USBContext.usbCommTask = new UsbCommTask();
+        USBContext.usbCommTask.taskInit();
+        USBContext.usbCommTask.start();
     }
 
     public interface OnCommandListener {

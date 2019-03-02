@@ -13,20 +13,17 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.TextView;
 
-import com.fm.factorytest.comm.bean.CommandTxWrapper;
-import com.fm.factorytest.comm.server.CommandServer;
-import com.fm.factorytest.comm.vo.USB;
 import com.fm.factorytest.helper.TemperatureHelper;
 import com.fm.factorytest.service.CommandService;
-import com.fm.factorytest.service.FengTVService;
+import com.fm.fengmicomm.usb.USBContext;
+import com.fm.fengmicomm.usb.callback.RxDataCallback;
+import com.fm.fengmicomm.usb.command.CommandRxWrapper;
+import com.fm.fengmicomm.usb.command.CommandTxWrapper;
 import com.fm.middlewareimpl.impl.SysAccessManagerImpl;
 import com.fm.middlewareimpl.interf.KeyManagerAbs;
 import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 
 import mitv.powermanagement.ScreenSaverManager;
-
-import static com.fm.factorytest.comm.base.PLMContext.usb;
-import static com.fm.factorytest.comm.factory.IOFactory.initPort;
 
 public class FactoryLauncher extends Activity {
     private final String TAG = "FactoryTestLauncher";
@@ -48,6 +45,8 @@ public class FactoryLauncher extends Activity {
             mHandler.postDelayed(mRefreshRunnable, 3000);
         }
     };
+    private TextView tvTest01;
+    private TextView tvTest02;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -122,6 +121,57 @@ public class FactoryLauncher extends Activity {
             case 19:
                 SysAccessManagerAbs sysAbs = new SysAccessManagerImpl(this);
                 Log.d(TAG, "version = " + sysAbs.readDLPVersion());
+                if (tvTest01 == null) {
+                    tvTest01 = findViewById(R.id.tv_test_01);
+                    tvTest02 = findViewById(R.id.tv_test_02);
+
+                    CommandRxWrapper.addRxDataCallBack("1992", new RxDataCallback() {
+                        int count = 0;
+
+                        @Override
+                        public void notifyDataReceived(String cmdID, final byte[] data) {
+                            count++;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvTest01.setText(new String(data) + " || " + count);
+                                }
+                            });
+                        }
+                    });
+                    CommandRxWrapper.addRxDataCallBack("1993", new RxDataCallback() {
+                        int count = 0;
+
+                        @Override
+                        public void notifyDataReceived(String cmdID, final byte[] data) {
+                            count++;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvTest02.setText("times = " + count + " ,received data len is " + data.length);
+                                }
+                            });
+
+                            //CommandTxWrapper txWrapper = new CommandTxWrapper(cmdID, "/persist/hdcp14_key.bin", CommandTxWrapper.DATA_FILE);
+                            //txWrapper.send();
+                        }
+                    });
+                }
+                // new Thread() {
+                //     @Override
+                //     public void run() {
+                //         while (true) {
+                //             CommandTxWrapper txFile = new CommandTxWrapper("1408", "/persist/hdcp14_key.bin", CommandTxWrapper.DATA_FILE);
+                //             txFile.send();
+                //             SystemClock.sleep(1000 * 7);
+                //
+                //             CommandTxWrapper txString = new CommandTxWrapper("1475", "文字测试", CommandTxWrapper.DATA_STRING);
+                //             txString.send();
+                //
+                //             SystemClock.sleep(1000 * 3);
+                //         }
+                //     }
+                // }.start();
                 break;
             case 20:
                 break;
@@ -131,7 +181,8 @@ public class FactoryLauncher extends Activity {
                 break;
             case 24:
                 volUp();
-                CommandTxWrapper tx = new CommandTxWrapper("1409", "ee", CommandTxWrapper.DATA_STRING);
+                CommandTxWrapper tx = CommandTxWrapper.initTX("1409", "ee",
+                        null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
                 tx.send();
                 //String name = keyManagerAbs.aml_key_get_name();
                 //Log.i(TAG, "aml_key_get_name   " + name);
@@ -149,7 +200,6 @@ public class FactoryLauncher extends Activity {
     private void volDown() {
         MediaSessionLegacyHelper.getHelper(this).sendAdjustVolumeBy(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
     }
-
 
 
     /**

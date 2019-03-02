@@ -1,0 +1,24 @@
+package com.fm.fengmicomm.usb;
+
+import com.fm.fengmicomm.usb.command.Command;
+import com.fm.fengmicomm.usb.task.UsbCommTask;
+import com.fm.fengmicomm.usb.task.UsbProtocolTask;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+
+public final class USBContext {
+    public static final byte TYPE_ACK = 0b00010000;
+    public static final byte TYPE_N_ACK = 0b00100000;
+    public static final byte TYPE_FUNC = 0b00000000;
+    public static final byte TYPE_DATA = 0b00000001;
+    public static final byte TYPE_CTL = 0b00000010;
+    public static volatile ArrayBlockingQueue<Command> commandRxQueue;
+    public static volatile ArrayBlockingQueue<Command> commandTxQueue;
+    public static volatile ConcurrentHashMap<String, Command> ackMap;
+    public static volatile ConcurrentHashMap<String, Command> nackMap;
+    public static volatile USB usb;
+
+    public static UsbProtocolTask usbProtocolTask;
+    public static UsbCommTask usbCommTask;
+}
