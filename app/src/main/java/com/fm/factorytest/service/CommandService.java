@@ -204,6 +204,30 @@ public class CommandService extends BaseCmdService {
         Log.i(TAG, "handleCommand cmdid : " + id);
         //do your business here
         switch (id) {
+            case TvCommandDescription.CMDID_EXEC_PROJ_WRITE:
+                try {
+                    mBinder.setResult_bool(cmdid, mSysAccessImpl.writeProjectorCMD(param));
+                } catch (android.os.RemoteException ex) {
+                }
+                break;
+            case TvCommandDescription.CMDID_EXEC_PROJ_READ:
+                try {
+                    mBinder.setResult_string(cmdid, mSysAccessImpl.readProjectorCMD(param));
+                } catch (android.os.RemoteException ex) {
+                }
+                break;
+            case TvCommandDescription.CMDID_EXEC_I2C_WRITE:
+                try {
+                    mBinder.setResult_bool(cmdid, mSysAccessImpl.writeI2CCMD(param));
+                } catch (android.os.RemoteException ex) {
+                }
+                break;
+            case TvCommandDescription.CMDID_EXEC_I2C_READ:
+                try {
+                    mBinder.setResult_string(cmdid, mSysAccessImpl.readI2CCMD(param));
+                } catch (android.os.RemoteException ex) {
+                }
+                break;
             case TvCommandDescription.CMDID_KEYSTONE_ENABLE:
                 try {
                     mBinder.setResult_bool(cmdid, KeyStoneUtil.setKeyStoneMode(param));

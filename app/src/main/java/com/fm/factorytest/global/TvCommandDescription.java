@@ -357,6 +357,12 @@ public class TvCommandDescription {
     public static final int CMDID_ADJUST_VOLUME = 0x14DC;
     public static final int CMDID_KEYSTONE_ENABLE = 0x14DD;
     public static final int CMDID_KEYSTONE_SET = 0x14DE;
+    public static final int CMDID_KEYSTONE_SETS = 0x14DF;
+
+    public static final int CMDID_EXEC_PROJ_WRITE = 0x14E0;
+    public static final int CMDID_EXEC_PROJ_READ = 0x14E1;
+    public static final int CMDID_EXEC_I2C_WRITE = 0x14E2;
+    public static final int CMDID_EXEC_I2C_READ = 0x14E3;
 
     /***************2. BOX command ID(the prefix is 0x2)**************/
     /* ------------------------------------ command id stop ---------------------------*/
@@ -372,6 +378,11 @@ public class TvCommandDescription {
     /* ------------------------------------ command table start ---------------------------*/
     /**************5. define cmdDesc***********************/
     public static final String[][] cmdDesc = {
+            {Integer.toHexString(CMDID_EXEC_PROJ_WRITE).toUpperCase(), "echo data > /sys/class/projector/*  ", CMD_TYPE_COMMON},
+            {Integer.toHexString(CMDID_EXEC_PROJ_READ).toUpperCase(), "cat /sys/class/projector/* ", CMD_TYPE_COMMON},
+            {Integer.toHexString(CMDID_EXEC_I2C_WRITE).toUpperCase(), "echo data > /sys/class/i2c*/*  ", CMD_TYPE_COMMON},
+            {Integer.toHexString(CMDID_EXEC_I2C_READ).toUpperCase(), "cat /sys/class/i2c*/* ", CMD_TYPE_COMMON},
+            {Integer.toHexString(CMDID_KEYSTONE_SETS).toUpperCase(), "set 8 points[] keystone direct", CMD_TYPE_COMMON},
             {Integer.toHexString(CMDID_KEYSTONE_SET).toUpperCase(), "set 8 points keystone direct", CMD_TYPE_COMMON},
             {Integer.toHexString(CMDID_KEYSTONE_ENABLE).toUpperCase(), "set 8 points keystone enable", CMD_TYPE_COMMON},
             {Integer.toHexString(CMDID_READ_DLP_VERSION).toUpperCase(), "read dlp version", CMD_TYPE_COMMON},

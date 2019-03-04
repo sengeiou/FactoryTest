@@ -54,4 +54,41 @@ public abstract class SysAccessManagerAbs extends BaseMiddleware {
      * @return
      */
     public abstract boolean setKeyStoneDirect(String param);
+
+    /**
+     * 写入 DLP 光机相关指令，并返回执行结果
+     * @param param 节点,指令.参数格式：X,Y,Z
+     *              X=写入节点前置代号，
+     *              Y=写入节点后置代号
+     *              Z=写入节点数据
+     * @return result 执行结果
+     */
+    public abstract boolean writeProjectorCMD(String param);
+
+    /**
+     * 读取 DLP 光机相关指令，并返回读取的数据
+     * @param param 节点,指令。参数格式：X,Y
+     *              X=要读取的节点前置代号，
+     *              Y=要读取的节点后置代号
+     * @return result 读取结果
+     */
+    public abstract String readProjectorCMD(String param);
+    /**
+     * 写入 DLP 光机相关指令，并返回执行结果
+     * @param param 节点,指令。参数格式：X,Y,Z
+     *              X=写入节点前置代号，
+     *              Y=写入节点后置代号
+     *              Z=写入节点数据
+     * @return result 执行结果
+     */
+    public abstract boolean writeI2CCMD(String param);
+
+    /**
+     * 读取 DLP 光机相关指令，并返回读取的数据
+     * @param param 节点,指令。参数格式：X,Y
+     *              X=要读取的节点前置代号，
+     *              Y=要读取的节点后置代号
+     * @return result 读取结果
+     */
+    public abstract String readI2CCMD(String param);
 }

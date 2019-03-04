@@ -197,6 +197,117 @@ public class SysAccessManagerImpl extends SysAccessManagerAbs {
         Log.d(TAG, "SetKeystoneSet " + res);
         return true;
     }
+    private static final String[] projector_type = new String[]{
+            "/sys/class/projector/laser-projector/",
+            "/sys/class/projector/led-projector/",
+    };
+    private static final String[] projector_node = new String[]{
+            "serial_write",
+            "projector-0-temp",
+            "projector-1-temp",
+            "projector-2-temp",
+            "i2c_read",
+            "i2c_write",
+            "i2c_busy",
+            "fan1_control",
+            "fan2_control",
+            "fan3_control",
+            "fan_level",
+            "dlp_brightness",
+            "dlp_status",
+            "look_select",
+    };
+    @Override
+    public boolean writeProjectorCMD(String param) {
+        if(param == null){
+            return false;
+        }
+        Log.d(TAG,"write projector CMD : "+param);
+        String[] ss = param.split(",");
+        //判断格式是否符合
+        if (ss.length==3 && TextUtils.isDigitsOnly(ss[0]) && TextUtils.isDigitsOnly(ss[1])){
+            int prefix = Integer.parseInt(ss[0]);
+            int suffix = Integer.parseInt(ss[1]);
+            if (prefix < projector_type.length && suffix < projector_node.length){
+                //向指定节点写入数据
+                return mControllManager.writeSysFs(projector_type[prefix]+projector_node[suffix],ss[2]);
+            }
+            return false;
+        }
+        return false;
+    }
+
+    @Override
+    public String readProjectorCMD(String param) {
+        if(param == null){
+            return "error";
+        }
+        Log.d(TAG,"read projector CMD : "+param);
+        String[] ss = param.split(",");
+        //判断格式是否符合
+        if (ss.length==2 && TextUtils.isDigitsOnly(ss[0]) && TextUtils.isDigitsOnly(ss[1])){
+            int prefix = Integer.parseInt(ss[0]);
+            int suffix = Integer.parseInt(ss[1]);
+            if (prefix < projector_type.length && suffix < projector_node.length){
+                //向指定节点写入数据
+                return mControllManager.readSysFs(projector_type[prefix]+projector_node[suffix]);
+            }
+            return "error";
+        }
+        return "error";
+    }
+
+    private static final String[] i2c_prefix = new String[]{
+            "/sys/class/i2c1/",
+            "/sys/class/i2c2/",
+            "/sys/class/i2c3/",
+    };
+    private static final String[] i2c_suffix = new String[]{
+            "debug",
+            "mode",
+            "slave",
+            "speed",
+            "trig_gpio",
+    };
+    @Override
+    public boolean writeI2CCMD(String param) {
+        if(param == null){
+            return false;
+        }
+        Log.d(TAG,"write I2C CMD : "+param);
+        String[] ss = param.split(",");
+        //判断格式是否符合
+        if (ss.length==3 && TextUtils.isDigitsOnly(ss[0]) && TextUtils.isDigitsOnly(ss[1])){
+            int prefix = Integer.parseInt(ss[0]);
+            int suffix = Integer.parseInt(ss[1]);
+            if (prefix < i2c_prefix.length && suffix < i2c_suffix.length){
+                //向指定节点写入数据
+                return mControllManager.writeSysFs(i2c_prefix[prefix]+i2c_suffix[suffix],ss[2]);
+            }
+            return false;
+        }
+        return false;
+    }
+
+    @Override
+    public String readI2CCMD(String param) {
+        if(param == null){
+            return "error";
+        }
+        Log.d(TAG,"read I2C CMD : "+param);
+        String[] ss = param.split(",");
+        //判断格式是否符合
+        if (ss.length==2 && TextUtils.isDigitsOnly(ss[0]) && TextUtils.isDigitsOnly(ss[1])){
+            int prefix = Integer.parseInt(ss[0]);
+            int suffix = Integer.parseInt(ss[1]);
+            if (prefix < i2c_prefix.length && suffix < i2c_suffix.length){
+                //向指定节点写入数据
+                return mControllManager.readSysFs(i2c_prefix[prefix]+i2c_suffix[suffix]);
+            }
+            return "error";
+        }
+        return "error";
+    }
 
 //========================================
 
