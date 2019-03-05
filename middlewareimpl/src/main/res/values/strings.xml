@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">middlewareimpl</string>
+    <string-array name="FM10_CMD_14E0">
+        <!--桌面背投-->
+        <item>0,0,08 02 14 91 6e 00 00 0d 0a</item>
+        <!--桌面正投-->
+        <item>0,0,08 02 14 8e 71 00 00 0d 0a</item>
+        <!--XPR open-->
+        <item>0,0,08 02 14 e1 1e 00 00 0d 0a</item>
+        <!--XPR close-->
+        <item>0,0,08 02 14 e1 1e 00 01 0d 0a</item>
+        <!--PMD1000 控制风扇调节 xx 取值:45～100-->
+        <item>0,0,08 02 14 b2 4d 00 xx 0d 0a</item>
+        <!--设置风扇1 duty cycle， xx 取值:8~99-->
+        <item>0,0,08 02 14 95 6a 00 xx 0d 0a</item>
+        <!--设置风扇2 转速，xx 取值:8~99-->
+        <item>0,0,08 02 14 96 69 00 xx 0d 0a</item>
+    </string-array>
 </resources>
