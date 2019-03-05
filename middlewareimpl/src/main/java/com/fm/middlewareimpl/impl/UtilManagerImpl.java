@@ -18,6 +18,7 @@ package com.fm.middlewareimpl.impl;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.PowerManager;
@@ -761,13 +762,25 @@ public class UtilManagerImpl extends UtilManagerAbs {
         Log.i(TAG, "factory power mode : " + stat);
     }
 
-    private boolean shutdownSystem() {
-        boolean ret = false;
+    private boolean writePowerMode() {
         String stat = null;
-        mKeyManager.aml_key_write(UNIFYKEY_POWER_MODE, "secondary", 0x0);
+        String target = null;
+        if ("conan".equals(Build.DEVICE)) {
+            //conan 需要按键开机
+            mKeyManager.aml_key_write(UNIFYKEY_POWER_MODE, POWER_HOLD, 0x0);
+            target = POWER_HOLD;
+        } else {
+            mKeyManager.aml_key_write(UNIFYKEY_POWER_MODE, POWER_ON_DIR, 0x0);
+            target = POWER_ON_DIR;
+        }
         stat = mKeyManager.aml_key_read(UNIFYKEY_POWER_MODE, 0x0);
         Log.i(TAG, "factory power mode : " + stat);
-        if (stat.equals("secondary")) {
+        return stat.equals(target);
+    }
+
+    private boolean shutdownSystem() {
+        boolean ret = false;
+        if (writePowerMode()){
             ScreenSaverManager manager = ScreenSaverManager.getInstance();
             manager.postSystemShutdownDelayed(0, false);
             ret = true;
@@ -779,11 +792,7 @@ public class UtilManagerImpl extends UtilManagerAbs {
     private boolean switchSystem() {
         boolean ret = false;
         Log.i(TAG, "switch system");
-        String stat = null;
-        mKeyManager.aml_key_write(UNIFYKEY_POWER_MODE, "secondary", 0x0);
-        stat = mKeyManager.aml_key_read(UNIFYKEY_POWER_MODE, 0x0);
-        Log.i(TAG, "factory power mode : " + stat);
-        if (stat.equals("secondary")) {
+        if (writePowerMode()){
             int delay = 1000;
             Log.i(TAG, "reboot after " + delay + "ms");
             mHandler.postDelayed(new Runnable() {
@@ -803,11 +812,7 @@ public class UtilManagerImpl extends UtilManagerAbs {
     private boolean switchSystemNew() {
         boolean ret = false;
         Log.i(TAG, "switch system to user");
-        String stat = null;
-        mKeyManager.aml_key_write(UNIFYKEY_POWER_MODE, "secondary", 0x0);
-        stat = mKeyManager.aml_key_read(UNIFYKEY_POWER_MODE, 0x0);
-        Log.i(TAG, "factory power mode : " + stat);
-        if (stat.equals("secondary")) {
+        if (writePowerMode()){
             ret = switchsysNew();
         }
         return ret;

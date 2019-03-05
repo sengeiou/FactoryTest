@@ -15,6 +15,7 @@ import com.fm.factorytest.utils.MotorUtil;
 
 import java.util.List;
 
+import mitv.display.PictureSettingsManager;
 import mitv.sound.SoundManager;
 
 
@@ -114,6 +115,8 @@ public class CommandService extends BaseCmdService {
         mAudioImpl.closeDTS_DOLBY();
         //12. if soundbar, set resolution as 1080p60 for capture card
         mMediaImpl.setScreenRes("1080P60");
+        //13. set default scene = SCENE_MODE_DEFAULT(0) for LocalMedia bug
+        mPicModeImpl.picModeSet(PictureSettingsManager.SCENE_MODE_DEFAULT);
     }
 
 
