@@ -1,7 +1,10 @@
 package com.fm.fengmicomm.usb;
 
 import com.fm.fengmicomm.usb.command.Command;
+import com.fm.fengmicomm.usb.task.CL200CommTask;
+import com.fm.fengmicomm.usb.task.CL200ProtocolTask;
 import com.fm.fengmicomm.usb.task.UsbCommTask;
+import com.fm.fengmicomm.usb.task.UsbCommTaskNew;
 import com.fm.fengmicomm.usb.task.UsbProtocolTask;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -17,8 +20,12 @@ public final class USBContext {
     public static volatile ArrayBlockingQueue<Command> commandTxQueue;
     public static volatile ConcurrentHashMap<String, Command> ackMap;
     public static volatile ConcurrentHashMap<String, Command> nackMap;
-    public static volatile USB usb;
 
+    public static volatile USB usb;
     public static UsbProtocolTask usbProtocolTask;
     public static UsbCommTask usbCommTask;
+
+    public static volatile USB cl200Usb;
+    public static CL200ProtocolTask cl200ProtocolTask;
+    public static CL200CommTask cl200CommTask;
 }

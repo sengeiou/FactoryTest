@@ -21,6 +21,7 @@ import java.util.List;
 /**
  * USB 管理
  * 包括 usb device 打开
+ *
  * @author lijie
  */
 public class USB {
@@ -81,31 +82,43 @@ public class USB {
 
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
-                afterGetUsbPermission(getTargetDevice());
-            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-                disConnectDevice();
-            } else if (ACTION_USB_PERMISSION.equals(action)) {
-                synchronized (this) {
-                    UsbDevice usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        //user choose YES for your previously popup window asking for grant perssion for this usb device
-                        if (onUsbChangeListener != null) {
-                            onUsbChangeListener.onPermissionGranted();
-                        }
-                        if (null != usbDevice) {
-                            afterGetUsbPermission(usbDevice);
-                        }
-                    } else {
-                        //user choose NO for your previously popup window asking for grant perssion for this usb device
-                        if (onUsbChangeListener != null) {
-                            onUsbChangeListener.onPermissionRefused();
+            UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            Log.d("mUsbReceiver", "device = " + device);
+            if (device != null) {
+                int vid = device.getVendorId();
+                int pid = device.getProductId();
+                if (vid == VID && pid == PID) {
+                    if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
+                        afterGetUsbPermission(getTargetDevice());
+                    } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                        disConnectDevice();
+                    } else if (ACTION_USB_PERMISSION.equals(action)) {
+                        synchronized (this) {
+                            UsbDevice usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                            if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                                //user choose YES for your previously popup window asking for grant perssion for this usb device
+                                if (onUsbChangeListener != null) {
+                                    onUsbChangeListener.onPermissionGranted();
+                                }
+                                if (null != usbDevice) {
+                                    afterGetUsbPermission(usbDevice);
+                                }
+                            } else {
+                                //user choose NO for your previously popup window asking for grant perssion for this usb device
+                                if (onUsbChangeListener != null) {
+                                    onUsbChangeListener.onPermissionRefused();
+                                }
+                            }
                         }
                     }
+                } else {
+                    Log.d("mUsbReceiver", "device is not target port,we ignore it!!");
                 }
             }
         }
     };
+    private int VID;
+    private int PID;
 
     private USB(Context ctx, USBBuilder builder) {
         BAUD_RATE = builder.BAUD_RATE;
@@ -115,9 +128,21 @@ public class USB {
         MAX_READ_BYTES = builder.MAX_READ_BYTES;
         DTR = builder.DTR;
         RTS = builder.RTS;
+        VID = builder.VID;
+        PID = builder.PID;
 
         this.ctx = new WeakReference<>(ctx);
         usbManager = (UsbManager) ctx.getSystemService(Context.USB_SERVICE);
+    }
+
+    private boolean isTargetDevice(UsbDevice device) {
+        if (device == null) {
+            return false;
+        }
+        int vid = device.getVendorId();
+        int pid = device.getProductId();
+        return false;
+
     }
 
     public void setOnUsbChangeListener(OnUsbChangeListener onUsbChangeListener) {
@@ -156,7 +181,8 @@ public class USB {
 
     /**
      * 读取端口数据
-     * @param recvBuffer 数据接收
+     *
+     * @param recvBuffer   数据接收
      * @param timeoutMills 超时时间
      * @return real length of read ,-1 is read error
      */
@@ -213,7 +239,7 @@ public class USB {
                 e.printStackTrace();
             }
         }
-        if (usbConn != null){
+        if (usbConn != null) {
             usbConn.close();
             usbConn = null;
         }
@@ -335,6 +361,8 @@ public class USB {
 
         private boolean DTR = false;
         private boolean RTS = false;
+        private int VID;
+        private int PID;
 
 
         public USBBuilder(Context act) {
@@ -373,6 +401,16 @@ public class USB {
 
         public USBBuilder setRTS(boolean rts) {
             this.RTS = rts;
+            return this;
+        }
+
+        public USBBuilder setVID(int VID) {
+            this.VID = VID;
+            return this;
+        }
+
+        public USBBuilder setPID(int PID) {
+            this.PID = PID;
             return this;
         }
 

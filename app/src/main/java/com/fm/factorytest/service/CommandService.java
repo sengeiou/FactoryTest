@@ -103,7 +103,7 @@ public class CommandService extends BaseCmdService {
         //9. set SoundVolume
         int val = mAudioImpl.audioGetSoundVolume() > 25 ? mAudioImpl.audioGetSoundVolume() : 50;
         Log.e(TAG, "CMDSERVICE:	default sound val is" + mAudioImpl.audioGetSoundVolume() + "current sound val is " + val);
-        mAudioImpl.audioSetSoundVolume(val);
+        mAudioImpl.audioSetSoundVolume(10);
         if ("conan".equals(Build.DEVICE)) {
             //10. set backlight as normal
             mPicModeImpl.picSetBacklight(2);

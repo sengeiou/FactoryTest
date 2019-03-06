@@ -8,6 +8,7 @@ import android.media.AudioManager;
 import android.media.session.MediaSessionLegacyHelper;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -124,22 +125,29 @@ public class FactoryLauncher extends Activity {
                 if (tvTest01 == null) {
                     tvTest01 = findViewById(R.id.tv_test_01);
                     tvTest02 = findViewById(R.id.tv_test_02);
+                    tvTest01.setText("ready");
+                    tvTest02.setText("ready");
 
-                    CommandRxWrapper.addRxDataCallBack("1992", new RxDataCallback() {
+                    CommandRxWrapper.addRxDataCallBack("3333", new RxDataCallback() {
                         int count = 0;
 
                         @Override
-                        public void notifyDataReceived(String cmdID, final byte[] data) {
+                        public void notifyDataReceived(final String cmdID, final byte[] data) {
                             count++;
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     tvTest01.setText(new String(data) + " || " + count);
+                                    if (count % 6 == 0) {
+                                        CommandTxWrapper tx = CommandTxWrapper.initTX("2222", "string trans times = "+count,
+                                                null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
+                                        tx.send();
+                                    }
                                 }
                             });
                         }
                     });
-                    CommandRxWrapper.addRxDataCallBack("1993", new RxDataCallback() {
+                    CommandRxWrapper.addRxDataCallBack("4444", new RxDataCallback() {
                         int count = 0;
 
                         @Override
@@ -148,30 +156,40 @@ public class FactoryLauncher extends Activity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    tvTest02.setText("times = " + count + " ,received data len is " + data.length);
+                                    tvTest02.setText(data.length + " || " + count);
+                                    if (count % 6 == 0) {
+                                        CommandTxWrapper tx = CommandTxWrapper.initTX("1111", "file trans times = "+count,
+                                                null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
+                                        tx.send();
+                                    }
                                 }
                             });
+                        }
+                    });
 
-                            //CommandTxWrapper txWrapper = new CommandTxWrapper(cmdID, "/persist/hdcp14_key.bin", CommandTxWrapper.DATA_FILE);
-                            //txWrapper.send();
+                    CommandRxWrapper.addRxDataCallBack("1111", new RxDataCallback() {
+                        @Override
+                        public void notifyDataReceived(String cmdID, final byte[] data) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvTest01.setText(new String(data));
+                                }
+                            });
+                        }
+                    });
+                    CommandRxWrapper.addRxDataCallBack("2222", new RxDataCallback() {
+                        @Override
+                        public void notifyDataReceived(String cmdID, final byte[] data) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvTest02.setText(new String(data));
+                                }
+                            });
                         }
                     });
                 }
-                // new Thread() {
-                //     @Override
-                //     public void run() {
-                //         while (true) {
-                //             CommandTxWrapper txFile = new CommandTxWrapper("1408", "/persist/hdcp14_key.bin", CommandTxWrapper.DATA_FILE);
-                //             txFile.send();
-                //             SystemClock.sleep(1000 * 7);
-                //
-                //             CommandTxWrapper txString = new CommandTxWrapper("1475", "文字测试", CommandTxWrapper.DATA_STRING);
-                //             txString.send();
-                //
-                //             SystemClock.sleep(1000 * 3);
-                //         }
-                //     }
-                // }.start();
                 break;
             case 20:
                 break;
@@ -181,9 +199,28 @@ public class FactoryLauncher extends Activity {
                 break;
             case 24:
                 volUp();
-                CommandTxWrapper tx = CommandTxWrapper.initTX("1409", "ee",
-                        null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
-                tx.send();
+                new Thread() {
+                    @Override
+                    public void run() {
+                        int count = 0;
+                        while (count < 2000) {
+                            CommandTxWrapper tx = CommandTxWrapper.initTX("3333", "ee",
+                                    null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
+                            tx.send();
+
+                            SystemClock.sleep(5000);
+
+                            CommandTxWrapper txWrapper = CommandTxWrapper.initTX("4444", "/persist/hdcp14_key.bin",
+                                    null, CommandTxWrapper.DATA_FILE, USBContext.TYPE_FUNC);
+                            txWrapper.send();
+
+                            SystemClock.sleep(7 * 1000);
+
+                            count++;
+                        }
+                    }
+                }.start();
+
                 //String name = keyManagerAbs.aml_key_get_name();
                 //Log.i(TAG, "aml_key_get_name   " + name);
                 break;

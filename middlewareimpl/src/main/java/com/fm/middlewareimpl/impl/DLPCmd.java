@@ -230,6 +230,10 @@ class ConanDLPCmd extends DLPCmd {
     private static final String CMD_XPR_INIT = "1b 2 0 fe 01";
     private static final String CMD_XPR_EXIT = "1b 2 0 fe 00";
 
+    // echo "1b 1 1 73" > /sys/class/i2c3/slave    //读gain
+    // echo "1b 2 0 72 0" > /sys/class/i2c3/slave   //关xpr
+    // echo "1b 2 0 72 2d" > /sys/class/i2c3/slave   //开xpr
+
     private static final String CMD_XPR_SHAKE_ON = "1b 2 0 7e 00";
     private static final String CMD_XPR_SHAKE_OFF = "1b 2 0 7e 01";
 
