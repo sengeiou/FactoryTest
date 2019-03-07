@@ -2,6 +2,7 @@ package com.fm.fengmicomm.usb.command;
 
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.fm.fengmicomm.usb.callback.GlobalCommandReceiveListener;
 import com.fm.fengmicomm.usb.callback.RxDataCallback;
@@ -72,7 +73,8 @@ public class CommandRxWrapper {
     public boolean isReceiving() {
         return receiving;
     }
-    public void startReceiving(){
+
+    public void startReceiving() {
         receiving = true;
     }
 
@@ -113,21 +115,30 @@ public class CommandRxWrapper {
         int len = 0;
         Map<Integer, Command> map = new HashMap<>();
         for (Command command : cmdList) {
-            len += command.getDataLen();
             map.put((int) command.getCmdNum(), command);
         }
+        //判断接受帧数与数据帧数是否一致
+        int recvSize = map.keySet().size();
+        int targetSum = cmdList.get(0).getCmdSum();
+        if (recvSize != targetSum) {
+            Log.d("UsbCommTask", recvSize + " <= received |||| target => " + targetSum);
+        } else {
+            for (Integer integer : map.keySet()) {
+                Log.d("UsbCommTask", integer + " <= key |||| target => " + map.get(integer));
+                len += map.get(integer).getDataLen();
+            }
+            data = new byte[len];
+            byte[] temp;
+            int curPos = 0;
 
-        data = new byte[len];
-        byte[] temp;
-        int curPos = 0;
-
-        for (int i = 0; i < cmdList.size(); i++) {
-            Command cmd = map.get(i);
-            if (cmd != null) {
-                temp = cmd.getData();
-                if (temp != null) {
-                    System.arraycopy(temp, 0, data, curPos, temp.length);
-                    curPos += temp.length;
+            for (int i = 0; i < cmdList.size(); i++) {
+                Command cmd = map.get(i);
+                if (cmd != null) {
+                    temp = cmd.getData();
+                    if (temp != null) {
+                        System.arraycopy(temp, 0, data, curPos, temp.length);
+                        curPos += temp.length;
+                    }
                 }
             }
         }

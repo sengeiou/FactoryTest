@@ -45,4 +45,5 @@ dependencies {
     implementation 'lee.hua.xmlparse:xmlparse:2.3.1'
     compileOnly files('/Users/lijie/fm-libs/framework.jar')
     compileOnly files('/Users/lijie/fm-libs/mitvmiddlewareimpl.jar')
+    compileOnly files('/Users/lijie/fm-libs/aml-droid.jar')
 }

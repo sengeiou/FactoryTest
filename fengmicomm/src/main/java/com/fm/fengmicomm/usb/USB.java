@@ -75,6 +75,8 @@ public class USB {
      * 是否支持 RTS
      */
     private boolean RTS = false;
+    private int VID;
+    private int PID;
     /**
      * USB 拔插、授权事件监听
      */
@@ -117,8 +119,6 @@ public class USB {
             }
         }
     };
-    private int VID;
-    private int PID;
 
     private USB(Context ctx, USBBuilder builder) {
         BAUD_RATE = builder.BAUD_RATE;

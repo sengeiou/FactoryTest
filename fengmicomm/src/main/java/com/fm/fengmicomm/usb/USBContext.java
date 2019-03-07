@@ -4,7 +4,6 @@ import com.fm.fengmicomm.usb.command.Command;
 import com.fm.fengmicomm.usb.task.CL200CommTask;
 import com.fm.fengmicomm.usb.task.CL200ProtocolTask;
 import com.fm.fengmicomm.usb.task.UsbCommTask;
-import com.fm.fengmicomm.usb.task.UsbCommTaskNew;
 import com.fm.fengmicomm.usb.task.UsbProtocolTask;
 
 import java.util.concurrent.ArrayBlockingQueue;
