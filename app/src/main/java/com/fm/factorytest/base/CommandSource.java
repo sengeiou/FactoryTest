@@ -13,8 +13,8 @@ import com.fm.fengmicomm.usb.callback.GlobalCommandReceiveListener;
 import com.fm.fengmicomm.usb.command.CommandRxWrapper;
 import com.fm.fengmicomm.usb.command.CommandTxWrapper;
 import com.fm.fengmicomm.usb.task.CL200CommTask;
+import com.fm.fengmicomm.usb.task.CL200ProtocolTask;
 import com.fm.fengmicomm.usb.task.UsbCommTask;
-import com.fm.fengmicomm.usb.task.UsbCommTaskNew;
 import com.fm.fengmicomm.usb.task.UsbProtocolTask;
 
 import java.io.PrintWriter;
@@ -22,6 +22,7 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
 import static com.fm.fengmicomm.usb.USBContext.cl200CommTask;
+import static com.fm.fengmicomm.usb.USBContext.cl200ProtocolTask;
 import static com.fm.fengmicomm.usb.USBContext.cl200Usb;
 import static com.fm.fengmicomm.usb.USBContext.usb;
 
@@ -67,7 +68,7 @@ public class CommandSource implements GlobalCommandReceiveListener {
         mCmdListener = listener;
         registerFakeCommand();
 
-        //initCL200A(context);
+        initCL200A(context);
         initUSB(context);
 
         CommandRxWrapper.addGlobalRXListener(this);
@@ -158,8 +159,10 @@ public class CommandSource implements GlobalCommandReceiveListener {
                     Log.d(TAG, "onWriteSuccess");
                 }
             });
-            //调用此方法先触发一次USB检测
-            usb.afterGetUsbPermission(usb.getTargetDevice());
+            if (usb.getTargetDevice() != null) {
+                //调用此方法先触发一次USB检测
+                usb.afterGetUsbPermission(usb.getTargetDevice());
+            }
         }
     }
 
@@ -176,12 +179,28 @@ public class CommandSource implements GlobalCommandReceiveListener {
         cl200Usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
             @Override
             public void onUsbConnect() {
-                cl200CommTask = new CL200CommTask();
-                cl200CommTask.start();
+                if (cl200ProtocolTask == null) {
+                    cl200ProtocolTask = new CL200ProtocolTask();
+                    cl200ProtocolTask.initTask();
+                    cl200ProtocolTask.start();
+                }
+                if (cl200CommTask == null) {
+                    cl200CommTask = new CL200CommTask();
+                    cl200CommTask.initTask();
+                    cl200CommTask.start();
+                }
             }
 
             @Override
             public void onUsbDisconnect() {
+                if (cl200CommTask != null) {
+                    cl200CommTask.killComm();
+                    cl200CommTask = null;
+                }
+                if (cl200ProtocolTask != null) {
+                    cl200ProtocolTask.killProtocol();
+                    cl200ProtocolTask = null;
+                }
             }
 
             @Override

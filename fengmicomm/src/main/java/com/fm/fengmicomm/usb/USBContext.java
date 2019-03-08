@@ -1,5 +1,7 @@
 package com.fm.fengmicomm.usb;
 
+import com.fm.fengmicomm.usb.callback.CL200RxDataCallBack;
+import com.fm.fengmicomm.usb.command.CL200Command;
 import com.fm.fengmicomm.usb.command.Command;
 import com.fm.fengmicomm.usb.task.CL200CommTask;
 import com.fm.fengmicomm.usb.task.CL200ProtocolTask;
@@ -27,4 +29,7 @@ public final class USBContext {
     public static volatile USB cl200Usb;
     public static CL200ProtocolTask cl200ProtocolTask;
     public static CL200CommTask cl200CommTask;
+    public static volatile ArrayBlockingQueue<CL200Command> cl200RxQueue;
+    public static volatile ArrayBlockingQueue<CL200Command> cl200TxQueue;
+    public static CL200RxDataCallBack cl200RxDataCallBack;
 }

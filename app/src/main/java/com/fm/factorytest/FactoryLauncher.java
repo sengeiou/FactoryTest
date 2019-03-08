@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.session.MediaSessionLegacyHelper;
 import android.os.Bundle;
@@ -17,16 +18,19 @@ import android.widget.TextView;
 import com.fm.factorytest.helper.TemperatureHelper;
 import com.fm.factorytest.service.CommandService;
 import com.fm.fengmicomm.usb.USBContext;
+import com.fm.fengmicomm.usb.callback.CL200RxDataCallBack;
 import com.fm.fengmicomm.usb.callback.RxDataCallback;
 import com.fm.fengmicomm.usb.command.CommandRxWrapper;
 import com.fm.fengmicomm.usb.command.CommandTxWrapper;
+import com.fm.middlewareimpl.impl.MediaTestManagerImpl;
 import com.fm.middlewareimpl.impl.SysAccessManagerImpl;
 import com.fm.middlewareimpl.interf.KeyManagerAbs;
+import com.fm.middlewareimpl.interf.MediaTestManagerAbs;
 import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 
 import mitv.powermanagement.ScreenSaverManager;
 
-public class FactoryLauncher extends Activity {
+public class FactoryLauncher extends Activity implements CL200RxDataCallBack {
     private final String TAG = "FactoryTestLauncher";
     KeyManagerAbs keyManagerAbs;
     private TextView mTV_FW_Version;
@@ -69,6 +73,7 @@ public class FactoryLauncher extends Activity {
         //set default input
         android.provider.Settings.Secure.putString(mContext.getContentResolver(), "default_input_method", "com.baidu.input/.ImeService");
         mHandler = new Handler();
+        USBContext.cl200RxDataCallBack = this;
     }
 
     @Override
@@ -122,6 +127,8 @@ public class FactoryLauncher extends Activity {
             case 19:
                 SysAccessManagerAbs sysAbs = new SysAccessManagerImpl(this);
                 Log.d(TAG, "version = " + sysAbs.readDLPVersion());
+                MediaTestManagerAbs mediaAbs = new MediaTestManagerImpl(this);
+                Log.d(TAG, "cec num = " + mediaAbs.hdmiTestCec(23));
                 if (tvTest01 == null) {
                     tvTest01 = findViewById(R.id.tv_test_01);
                     tvTest02 = findViewById(R.id.tv_test_02);
@@ -138,11 +145,9 @@ public class FactoryLauncher extends Activity {
                                 @Override
                                 public void run() {
                                     tvTest01.setText(new String(data) + " || " + count);
-                                    if (count % 6 == 0) {
-                                        CommandTxWrapper tx = CommandTxWrapper.initTX("2222", "string trans times = "+count,
-                                                null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
-                                        tx.send();
-                                    }
+                                    CommandTxWrapper tx = CommandTxWrapper.initTX("2222", "string trans times = " + count,
+                                            null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
+                                    tx.send();
                                 }
                             });
                         }
@@ -157,11 +162,9 @@ public class FactoryLauncher extends Activity {
                                 @Override
                                 public void run() {
                                     tvTest02.setText(data.length + " || " + count);
-                                    if (count % 6 == 0) {
-                                        CommandTxWrapper tx = CommandTxWrapper.initTX("1111", "file trans times = "+count,
-                                                null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
-                                        tx.send();
-                                    }
+                                    CommandTxWrapper tx = CommandTxWrapper.initTX("1111", "file trans times = " + count,
+                                            null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
+                                    tx.send();
                                 }
                             });
                         }
@@ -203,18 +206,18 @@ public class FactoryLauncher extends Activity {
                     @Override
                     public void run() {
                         int count = 0;
-                        while (count < 2000) {
+                        while (count <= 1000 * 30) {
                             CommandTxWrapper tx = CommandTxWrapper.initTX("3333", "ee",
                                     null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
                             tx.send();
 
-                            SystemClock.sleep(5000);
+                            SystemClock.sleep(3000);
 
                             CommandTxWrapper txWrapper = CommandTxWrapper.initTX("4444", "/persist/hdcp14_key.bin",
                                     null, CommandTxWrapper.DATA_FILE, USBContext.TYPE_FUNC);
                             txWrapper.send();
 
-                            SystemClock.sleep(7 * 1000);
+                            SystemClock.sleep(10 * 1000);
 
                             count++;
                         }
@@ -236,6 +239,26 @@ public class FactoryLauncher extends Activity {
 
     private void volDown() {
         MediaSessionLegacyHelper.getHelper(this).sendAdjustVolumeBy(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+    }
+
+    @Override
+    public void onDataReceived(final boolean valid, final String Ev, final String x, final String y) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (tvTest01 == null) {
+                    tvTest01 = findViewById(R.id.tv_test_01);
+                }
+                if (valid) {
+                    tvTest01.setTextColor(Color.GREEN);
+                } else {
+                    tvTest01.setTextColor(Color.RED);
+                }
+                tvTest01.setText("Ev : " + Ev + "\n"
+                        + "x : " + x + "\n"
+                        + "y : " + y);
+            }
+        });
     }
 
 
