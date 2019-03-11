@@ -20,18 +20,22 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
         MediaPlayer.OnCompletionListener {
     private static final String TAG = "FactoryLocalMedia";
     private static final String[] MediaSour = {
+            "/mnt/media_rw/0000-0000/autovideo_4k2k.mov",
             "/system/factory/autovideo_4k2k.mov",
             "/system/factory/pink_noise_0db.mov",
             "/system/factory/autovideo.mov",
             "/system/factory/autovideo_1080.mov",
     };
+    private static final String DUCK = "duck";
+    private static final String VIDEO4K = "4k2k";
+    private static final String PINKNOISE = "pink";
+
+    //private int source_item = 0;
+    private static final String ICEHOCKEY = "ice";
     private int MediaItem = 0;
     //private TextView mTextView;
     private SurfaceView mSurfaceView;
     private SurfaceHolder surfaceHolder;
-
-    //private int source_item = 0;
-
     private MediaPlayer mMediaPlayer;
     /*
      * Called when the activity is first created.
@@ -130,11 +134,6 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
         // TODO Auto-generated method stub
         setResult(NON_INNACTIVITYCMD, FAIL);
     }
-
-    private static final String DUCK = "duck";
-    private static final String VIDEO4K = "4k2k";
-    private static final String PINKNOISE = "pink";
-    private static final String ICEHOCKEY = "ice";
 
     public void handleCommand(String cmdid, String param) {
         int i = 0;

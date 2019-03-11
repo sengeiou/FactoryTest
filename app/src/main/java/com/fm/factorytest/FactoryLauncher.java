@@ -1,12 +1,15 @@
 package com.fm.factorytest;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.session.MediaSessionLegacyHelper;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -52,6 +55,28 @@ public class FactoryLauncher extends Activity implements CL200RxDataCallBack {
     };
     private TextView tvTest01;
     private TextView tvTest02;
+    private BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
+            int health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, 0);
+            int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 0);
+            int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+            int present = intent.getIntExtra(BatteryManager.EXTRA_PRESENT, 0);
+            int voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
+            int temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
+            String tench = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY);
+
+            Log.d(TAG, "plugged : " + plugged);
+            Log.d(TAG, "health : " + health);
+            Log.d(TAG, "scale : " + scale);
+            Log.d(TAG, "level : " + level);
+            Log.d(TAG, "present : " + present);
+            Log.d(TAG, "voltage : " + voltage);
+            Log.d(TAG, "temp : " + temp);
+            Log.d(TAG, "tench : " + tench);
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -102,12 +127,14 @@ public class FactoryLauncher extends Activity implements CL200RxDataCallBack {
         super.onResume();
         mHandler.post(mRefreshRunnable);
         queryFWVersion();
+        registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mHandler.removeCallbacks(mRefreshRunnable);
+        unregisterReceiver(batteryReceiver);
     }
 
     private void queryFWVersion() {

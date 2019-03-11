@@ -39,7 +39,18 @@ public class CommandSource implements GlobalCommandReceiveListener {
             if (action != null && action.equals(FAKE_COMMAN_ACTION)) {
                 String para0 = intent.getStringExtra(FactorySetting.EXTRA_CMDID);
                 String para1 = intent.getStringExtra(FactorySetting.EXTRA_CMDPARA);
-                para1 = stringToAscii(para1);
+                if (para0 != null) {
+                    para0 = para0.toUpperCase();
+                    try {
+                        Integer.parseInt(para0, 16);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, e.toString());
+                        return;
+                    }
+                }
+                if (para1 != null) {
+                    para1 = stringToAscii(para1);
+                }
                 // }
                 Log.i(TAG, "Got FAKE_COMMAN_ACTION, para0 : [ " + para0 + " ], para1 : [" + para1 + " ]");
                 mCmdListener.handleCommand(para0, para1);

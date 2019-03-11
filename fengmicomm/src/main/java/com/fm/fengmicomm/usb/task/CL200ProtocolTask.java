@@ -61,9 +61,9 @@ public class CL200ProtocolTask extends Thread {
                         char dec1 = datas.charAt(5);
                         char dec2 = datas.charAt(11);
                         char dec3 = datas.charAt(17);
-                        String val1 = datas.substring(1, 5);
-                        String val2 = datas.substring(7, 11);
-                        String val3 = datas.substring(13, 17);
+                        String val1 = datas.substring(1, 5).trim();
+                        String val2 = datas.substring(7, 11).trim();
+                        String val3 = datas.substring(13, 17).trim();
 
                         if (cl200RxDataCallBack != null) {
                             cl200RxDataCallBack.onDataReceived(
@@ -78,10 +78,10 @@ public class CL200ProtocolTask extends Thread {
                 }
             } else {
                 cl200TxQueue.add(measure);
-                SystemClock.sleep(1000);
+                SystemClock.sleep(500);
 
                 cl200TxQueue.add(read);
-                SystemClock.sleep(1000);
+                SystemClock.sleep(500);
             }
         }
     }
