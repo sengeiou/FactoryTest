@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.fengmi.usertest.PicModeManagerImpl;
 
+import java.math.BigDecimal;
+
 public final class PQUtil {
     public static final int R_GAIN = 0;
     public static final int G_GAIN = 1;
@@ -28,6 +30,21 @@ public final class PQUtil {
     }
 
     public static void updatePQValue(int pqType, boolean add) {
+        if (picModeManager != null) {
+            if (add) {
+                pqIncrease(pqType);
+            } else {
+                pqDecrease(pqType);
+            }
+        }
+    }
+
+    public static void updatePQValue(int pqType, boolean add, BigDecimal off) {
+        if (off.compareTo(new BigDecimal("0.0035")) > 0) {
+            Util.PQ_ADJUST_STEP = 10;
+        } else {
+            Util.PQ_ADJUST_STEP = 1;
+        }
         if (picModeManager != null) {
             if (add) {
                 pqIncrease(pqType);

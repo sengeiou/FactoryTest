@@ -287,15 +287,16 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
                         if (temp == null) {
                             return false;
                         }
+                        BigDecimal off = temp.yData.subtract(Y_STANDARD);
                         //小于标准
                         if (temp.yData.compareTo(Y_STANDARD.subtract(adjust)) < 0) {
-                            Log.d(TAG, "Y : 小于标准  " + temp.yData);
+                            Log.d(TAG, "Y : 小于标准  " + temp.yData + " 偏移量：" + off);
                             // B gain 减少
-                            updatePQValue(B_GAIN, false);
+                            updatePQValue(B_GAIN, false, off.abs());
                         } else if (temp.yData.compareTo(Y_STANDARD.add(adjust)) > 0) {
-                            Log.d(TAG, "Y : 大于标准  " + temp.yData);
+                            Log.d(TAG, "Y : 大于标准  " + temp.yData + " 偏移量：" + off);
                             // B gain 增加
-                            updatePQValue(B_GAIN, true);
+                            updatePQValue(B_GAIN, true, off.abs());
                         } else {
                             break;
                         }
@@ -309,16 +310,17 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
                         if (temp == null) {
                             return false;
                         }
+                        BigDecimal off = temp.xData.subtract(X_STANDARD);
                         //小于标准
                         if (temp.xData.compareTo(X_STANDARD.subtract(adjust)) < 0) {
-                            Log.d(TAG, " X : 小于标准  " + temp.xData);
+                            Log.d(TAG, " X : 小于标准  " + temp.xData + " 偏移量：" + off);
                             // R gain 增加
-                            updatePQValue(R_GAIN, true);
+                            updatePQValue(R_GAIN, true, off.abs());
                             changed = true;
                         } else if (temp.xData.compareTo(X_STANDARD.add(adjust)) > 0) {
-                            Log.d(TAG, "X ：大于标准  " + temp.xData);
+                            Log.d(TAG, "X ：大于标准  " + temp.xData + " 偏移量：" + off);
                             // R gain 减少
-                            updatePQValue(R_GAIN, false);
+                            updatePQValue(R_GAIN, false, off.abs());
                             changed = true;
                         } else {
                             break;
@@ -355,15 +357,16 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
                         if (temp == null) {
                             return false;
                         }
+                        BigDecimal off = temp.yData.subtract(Y_STANDARD);
                         //小于标准
                         if (temp.yData.compareTo(Y_STANDARD.subtract(verify)) < 0) {
-                            Log.d(TAG, "Y : 30 IRE 小于标准 " + temp.yData);
+                            Log.d(TAG, "Y : 30 IRE 小于标准 " + temp.yData + " 偏移量：" + off);
                             //B off 减少
-                            updatePQValue(B_OFF, false);
-                        } else if (temp.yData.compareTo(Y_STANDARD.subtract(verify)) > 0) {
-                            Log.d(TAG, "Y : 30 IRE 大于标准 " + temp.yData);
+                            updatePQValue(B_OFF, false, off.abs());
+                        } else if (temp.yData.compareTo(Y_STANDARD.add(verify)) > 0) {
+                            Log.d(TAG, "Y : 30 IRE 大于标准 " + temp.yData + " 偏移量：" + off);
                             //B off 增加
-                            updatePQValue(B_OFF, true);
+                            updatePQValue(B_OFF, true, off.abs());
                         } else {
                             break;
                         }
@@ -377,16 +380,17 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
                         if (temp == null) {
                             return false;
                         }
+                        BigDecimal off = temp.xData.subtract(X_STANDARD);
                         //小于标准
                         if (temp.xData.compareTo(X_STANDARD.subtract(verify)) < 0) {
-                            Log.d(TAG, "X : 30 IRE  小于标准 " + temp.xData);
+                            Log.d(TAG, "X : 30 IRE  小于标准 " + temp.xData + " 偏移量：" + off);
                             //R off 增加
-                            updatePQValue(R_OFF, true);
+                            updatePQValue(R_OFF, true, off.abs());
                             changed = true;
-                        } else if (temp.xData.compareTo(X_STANDARD.subtract(verify)) > 0) {
-                            Log.d(TAG, "X : 30 IRE  大于标准 " + temp.xData);
+                        } else if (temp.xData.compareTo(X_STANDARD.add(verify)) > 0) {
+                            Log.d(TAG, "X : 30 IRE  大于标准 " + temp.xData + " 偏移量：" + off);
                             //R off 减少
-                            updatePQValue(R_OFF, false);
+                            updatePQValue(R_OFF, false, off.abs());
                             changed = true;
                         } else {
                             break;

@@ -7,6 +7,7 @@ import android.view.View;
 import com.fengmi.usertest.activitys.AutoPQActivity;
 import com.fengmi.usertest.activitys.BaseActivity;
 import com.fengmi.usertest.activitys.InfoWriteActivity;
+import com.fengmi.usertest.activitys.PQActivity;
 
 public class UserActivity extends BaseActivity {
 
