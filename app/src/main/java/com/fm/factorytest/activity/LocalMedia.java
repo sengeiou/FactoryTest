@@ -17,10 +17,10 @@ import com.fm.factorytest.views.CameraView;
 import java.io.IOException;
 
 public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
-        MediaPlayer.OnCompletionListener {
+        MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener {
     private static final String TAG = "FactoryLocalMedia";
     private static final String[] MediaSour = {
-            "/mnt/media_rw/0000-0000/autovideo_4k2k.mov",
+            "/data/autovideo_4k2k.mov",
             "/system/factory/autovideo_4k2k.mov",
             "/system/factory/pink_noise_0db.mov",
             "/system/factory/autovideo.mov",
@@ -90,18 +90,15 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
             e.printStackTrace();
         }
         //mMediaPlayer.setLooping(true);
+        //设置 prepared 监听
+        mMediaPlayer.setOnPreparedListener(this);
         try {
-            mMediaPlayer.prepare();
+            //异步加载资源，在监听器中 start()
+            mMediaPlayer.prepareAsync();
         } catch (IllegalStateException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
-        mMediaPlayer.start();
-        mMediaPlayer.seekTo(0);
-        mMediaPlayer.setLooping(true);
 
     }
 
@@ -166,6 +163,8 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
         mMediaPlayer = new MediaPlayer();
 
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        mMediaPlayer.setOnErrorListener(this);
     }
 
     public void handleControlMsg(int cmdtype, String cmdid, String cmdpara) {
@@ -177,6 +176,34 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
                 mMediaPlayer = null;
             }
             setResult(cmdid, PASS, true);
+        }
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        if (mp != null) {
+            if (what == MediaPlayer.MEDIA_ERROR_SERVER_DIED) {
+                Log.e(TAG, "media error, server died,we need new media player");
+                if (mMediaPlayer != null) {
+                    mMediaPlayer.stop();
+                    mMediaPlayer.release();
+
+                    mMediaPlayer = new MediaPlayer();
+                    mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    mMediaPlayer.setOnErrorListener(this);
+                    localMediaPlay(MediaItem);
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.start();
+            mMediaPlayer.seekTo(0);
+            mMediaPlayer.setLooping(true);
         }
     }
 }

@@ -50,7 +50,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation 'com.github.zhouzhuo810:OkUSB:1.0.0'
+    implementation project(':fengmicomm')
     compileOnly files('/Users/lijie/fm-libs/framework.jar')
     compileOnly files('/Users/lijie/fm-libs/mitvmiddlewareimpl.jar')
     compileOnly files('/Users/lijie/fm-libs/aml-droid.jar')

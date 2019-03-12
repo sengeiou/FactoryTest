@@ -77,6 +77,7 @@ public class USB {
     private boolean RTS = false;
     private int VID;
     private int PID;
+    private String devName = "CP2102";
     /**
      * USB 拔插、授权事件监听
      */
@@ -147,7 +148,7 @@ public class USB {
 
     public void setOnUsbChangeListener(OnUsbChangeListener onUsbChangeListener) {
         this.onUsbChangeListener = onUsbChangeListener;
-        register();
+        register(ctx.get());
     }
 
     /**
@@ -202,12 +203,11 @@ public class USB {
     /**
      * 注册监听
      */
-    private void register() {
+    private void register(Context context) {
         IntentFilter usbFilter = new IntentFilter();
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         usbFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         usbFilter.addAction(ACTION_USB_PERMISSION);
-        Context context = ctx.get();
         if (context != null) {
             context.registerReceiver(mUsbPermissionActionReceiver, usbFilter);
         }
@@ -216,8 +216,7 @@ public class USB {
     /**
      * 取消注册
      */
-    public void destroy() {
-        Context context = ctx.get();
+    public void destroy(Context context) {
         if (context != null) {
             context.unregisterReceiver(mUsbPermissionActionReceiver);
         }
@@ -313,6 +312,10 @@ public class USB {
         }
     }
 
+    public void setDevName(String devName) {
+        this.devName = devName;
+    }
+
     /**
      * 获取目标端口
      *
@@ -322,7 +325,7 @@ public class USB {
         UsbDevice res = null;
         for (UsbDevice device : usbManager.getDeviceList().values()) {
             String name = device.getProductName();
-            if (name != null && name.contains("CP2102")) {
+            if (name != null && name.contains(devName)) {
                 res = device;
             }
         }

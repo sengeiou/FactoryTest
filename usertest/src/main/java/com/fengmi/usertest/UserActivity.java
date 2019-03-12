@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.fengmi.usertest.activitys.AutoPQActivity;
 import com.fengmi.usertest.activitys.BaseActivity;
 import com.fengmi.usertest.activitys.InfoWriteActivity;
-import com.fengmi.usertest.activitys.PQActivity;
 
 public class UserActivity extends BaseActivity {
 
@@ -22,7 +22,7 @@ public class UserActivity extends BaseActivity {
     }
 
     public void gotoPQ(View view) {
-        startActivity(new Intent(this, PQActivity.class));
+        startActivity(new Intent(this, AutoPQActivity.class));
         finish();
     }
 }

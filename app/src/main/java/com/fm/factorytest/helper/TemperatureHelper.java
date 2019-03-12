@@ -11,12 +11,13 @@ public class TemperatureHelper {
     private static final String ANGLEE = "anglee";
     private static final String BATMAN = "batman";
     private static final String EVA = "eva";
+    private static final String DORAEMON = "doraemon";
     private static final String FM10_HEAD = "fm10";
 
     private static String[] getTemperatureTitles() {
         String[] temperatureTitles = null;
         String hwVersion = SystemProperties.get("ro.boot.hardware_version", " ");
-        if (Build.DEVICE.equals(CONAN) || Build.DEVICE.equals(EVA)) {
+        if (Build.DEVICE.equals(CONAN) || Build.DEVICE.equals(EVA) || Build.DEVICE.equals(DORAEMON)) {
             temperatureTitles = new String[]{"红光温度\t\t", "绿光温度\t\t", "环境温度\t\t"};
         } else if (Build.DEVICE.equals(BATMAN) || Build.DEVICE.equals(ANGLEE)) {
             if (hwVersion.contains(FM10_HEAD)) {
@@ -31,7 +32,7 @@ public class TemperatureHelper {
 
     public static TemperatureData queryTemperature() {
         String hwVersion = SystemProperties.get("ro.boot.hardware_version", " ");
-        if (Build.DEVICE.equals(CONAN) || Build.DEVICE.equals(EVA)) {
+        if (Build.DEVICE.equals(CONAN) || Build.DEVICE.equals(EVA) || Build.DEVICE.equals(DORAEMON)) {
             return queryConanTemperature();
         } else {
             if (hwVersion.contains(FM10_HEAD)) {

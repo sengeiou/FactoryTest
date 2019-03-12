@@ -136,7 +136,7 @@ public class CameraView extends RelativeLayout implements SurfaceHolder.Callback
             Log.d(TAG, "detected usb device: name ==>" + usb.getDeviceName()
                     + ", manufacture name is==>" + usb.getManufacturerName());
             String usbMNname = usb.getManufacturerName();
-            if (usbMNname.length() > 6) {
+            if (usbMNname.length() > 6 && !usbDetected) {
                 usbMNname = usbMNname.substring(0, 6);
                 usbDetected = TextUtils.isDigitsOnly(usbMNname);
             }

@@ -8,6 +8,8 @@ import com.fengmi.usertest.utils.Util;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static org.junit.Assert.*;
 
@@ -48,5 +50,12 @@ public class ExampleUnitTest {
         //sn.snIncrement();
 
         //Util.writeConfig(conf,"/Users/lijie/Desktop/L246.xml");
+    }
+
+    public void strFloat(){
+        BigDecimal bd = new BigDecimal("0.026");
+        bd = bd.setScale(4, RoundingMode.FLOOR);
+        bd = bd.divide(new BigDecimal("4"));
+        System.out.println(bd);
     }
 }

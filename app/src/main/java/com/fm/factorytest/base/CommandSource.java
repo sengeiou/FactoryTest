@@ -100,7 +100,7 @@ public class CommandSource implements GlobalCommandReceiveListener {
         if (context != null) {
             context.unregisterReceiver(fakeCommandReceiver);
         }
-        usb.destroy();
+        usb.destroy(context);
         usb = null;
     }
 
