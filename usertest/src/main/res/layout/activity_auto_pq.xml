@@ -13,11 +13,37 @@
         android:layout_centerInParent="true"
         android:layout_margin="90dp"
         android:background="@color/colorAccent" />
+
     <Button
         android:id="@+id/btn_pq_run"
-        android:onClick="runPQ"
-        android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:onClick="runPQ"
+        android:text="开启PQ调节" />
+
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tv_cl200_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:textSize="16sp" />
+
+    <Spinner
+        android:id="@+id/spinner_pic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:entries="@array/spinner_pic_array" />
 
 </RelativeLayout>

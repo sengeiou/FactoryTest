@@ -6,13 +6,15 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fengmi.usertest.R;
 import com.fm.fengmicomm.usb.USB;
 import com.fm.fengmicomm.usb.USBContext;
-import com.fm.fengmicomm.usb.callback.CL200RxDataCallBack;
 import com.fm.fengmicomm.usb.task.CL200CommTask;
 import com.fm.fengmicomm.usb.task.CL200ProtocolTask;
 
@@ -31,7 +33,7 @@ import static com.fm.fengmicomm.usb.USBContext.cl200CommTask;
 import static com.fm.fengmicomm.usb.USBContext.cl200ProtocolTask;
 import static com.fm.fengmicomm.usb.USBContext.cl200Usb;
 
-public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack {
+public class AutoPQActivity extends BaseActivity {
     //L246 标准
     // private static final String[][] PQ_STANDARD = new String[][]{
     //         //||    30IRE       ||      70IRE      ||
@@ -57,18 +59,39 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
     private ImageView ivPic;
     private PQVerifyTask pqVerifyTask;
 
+    private TextView tvCl200Data;
+    private TextView tvStatus;
+    private Spinner spinnerPic;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auto_pq);
         ivPic = findViewById(R.id.iv_pq_pattern);
+        tvCl200Data = findViewById(R.id.tv_cl200_data);
+        tvStatus = findViewById(R.id.tv_status);
+        spinnerPic = findViewById(R.id.spinner_pic);
 
         cl200Info = new CL200Info();
         pqVerifyTask = new PQVerifyTask();
-        USBContext.cl200RxDataCallBack = this;
+        spinnerPic.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String pic = (String) parent.getAdapter().getItem(position);
+                Log.d(TAG, "onItemSelected pic is === " + pic);
+                updatePic(pic);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         init(this);
         initCL200A(this);
+
+        resetPQ();
     }
 
     @Override
@@ -80,13 +103,44 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
     }
 
     @Override
-    public void onDataReceived(boolean valid, String Ev, String x, String y) {
+    public void onCL200Received(boolean valid, String Ev, String x, String y) {
         cl200Info.valid = valid;
         cl200Info.Ev = Ev;
         cl200Info.x = x;
         cl200Info.y = y;
 
         newData = true;
+        updateCL200Data(valid, Ev, x, y);
+    }
+
+    public void updateCL200Data(final boolean valid, final String Ev, final String x, final String y) {
+        final BigDecimal evData = new BigDecimal(Ev.substring(1)).setScale(2, BigDecimal.ROUND_HALF_UP);
+        final BigDecimal xData = new BigDecimal(x.substring(1)).setScale(4, BigDecimal.ROUND_HALF_UP);
+        final BigDecimal yData = new BigDecimal(y.substring(1)).setScale(4, BigDecimal.ROUND_HALF_UP);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (valid) {
+                    tvCl200Data.setTextColor(Color.BLACK);
+                } else {
+                    tvCl200Data.setTextColor(Color.RED);
+                }
+                tvCl200Data.setText(
+                        "Ev : " + evData + "\n" +
+                                "x : " + xData + "\n" +
+                                "y : " + yData
+                );
+            }
+        });
+    }
+
+    public void updateStatus(String status) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });
     }
 
     public void updatePic(String pic) {
@@ -218,9 +272,12 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
         int check30IRETimes = 0;
         boolean pqPass = false;
 
+        boolean verify30IREChanged;
+
         @Override
         public void run() {
             pqRunning = true;
+            verify30IREChanged = false;
             //色温代号 0:cool,1:normal,2:warm
             for (int colorTemp = 0; colorTemp < 3; colorTemp++) {
                 //set color temp
@@ -237,8 +294,16 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
                         switchTo30IRE();
                         //校验 30 IRE
                         if (verify30IRE(colorTemp, 0)) {
-                            pqPass = true;
-                            break;
+                            Log.d(TAG, "verify30IREChanged " + verify30IREChanged);
+                            if (verify30IREChanged) {
+                                //如果30IRE 有调整，重新检测70IRE
+                                Log.d(TAG, "检测到30 IRE 有改动，重新校验70IRE");
+                                verify30IREChanged = false;
+                                continue;
+                            } else {
+                                pqPass = true;
+                                break;
+                            }
                         } else {
                             Log.d(TAG, "30 IRE 校验失败,次数 ：" + i);
                         }
@@ -254,6 +319,7 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
             pqRunning = false;
             if (pqPass) {
                 Log.d(TAG, "PQ 调节完成");
+                updateStatus("PQ 调节完成");
             } else {
                 resetPQ();
             }
@@ -348,6 +414,7 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
         private boolean verify30IRE(int colorTemp, int status) {
             BigDecimal X_STANDARD = new BigDecimal(PQ_STANDARD[colorTemp][0]).setScale(4, RoundingMode.HALF_UP);
             BigDecimal Y_STANDARD = new BigDecimal(PQ_STANDARD[colorTemp][1]).setScale(4, RoundingMode.HALF_UP);
+            verify30IREChanged = false;
             switch (status) {
                 case 0:
                     //校验 30IRE 下的 y 坐标
@@ -363,10 +430,12 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
                             Log.d(TAG, "Y : 30 IRE 小于标准 " + temp.yData + " 偏移量：" + off);
                             //B off 减少
                             updatePQValue(B_OFF, false, off.abs());
+                            verify30IREChanged = true;
                         } else if (temp.yData.compareTo(Y_STANDARD.add(verify)) > 0) {
                             Log.d(TAG, "Y : 30 IRE 大于标准 " + temp.yData + " 偏移量：" + off);
                             //B off 增加
                             updatePQValue(B_OFF, true, off.abs());
+                            verify30IREChanged = true;
                         } else {
                             break;
                         }
@@ -387,11 +456,13 @@ public class AutoPQActivity extends BaseActivity implements CL200RxDataCallBack 
                             //R off 增加
                             updatePQValue(R_OFF, true, off.abs());
                             changed = true;
+                            verify30IREChanged = true;
                         } else if (temp.xData.compareTo(X_STANDARD.add(verify)) > 0) {
                             Log.d(TAG, "X : 30 IRE  大于标准 " + temp.xData + " 偏移量：" + off);
                             //R off 减少
                             updatePQValue(R_OFF, false, off.abs());
                             changed = true;
+                            verify30IREChanged = true;
                         } else {
                             break;
                         }

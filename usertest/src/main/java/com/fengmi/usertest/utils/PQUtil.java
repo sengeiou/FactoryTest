@@ -40,10 +40,18 @@ public final class PQUtil {
     }
 
     public static void updatePQValue(int pqType, boolean add, BigDecimal off) {
-        if (off.compareTo(new BigDecimal("0.0035")) > 0) {
-            Util.PQ_ADJUST_STEP = 10;
+        if (pqType > 9) {
+            if (off.compareTo(new BigDecimal("0.0065")) > 0) {
+                Util.PQ_ADJUST_STEP = 6;
+            } else {
+                Util.PQ_ADJUST_STEP = 1;
+            }
         } else {
-            Util.PQ_ADJUST_STEP = 1;
+            if (off.compareTo(new BigDecimal("0.0035")) > 0) {
+                Util.PQ_ADJUST_STEP = 10;
+            } else {
+                Util.PQ_ADJUST_STEP = 1;
+            }
         }
         if (picModeManager != null) {
             if (add) {
