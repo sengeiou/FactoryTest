@@ -12,7 +12,7 @@ import android.view.SurfaceView;
 import com.fm.factorytest.R;
 import com.fm.factorytest.base.BaseActivity;
 import com.fm.factorytest.global.FactorySetting;
-import com.fm.factorytest.views.CameraView;
+import com.fm.factorytest.views.Camera2View;
 
 import java.io.IOException;
 
@@ -40,7 +40,7 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
     /*
      * Called when the activity is first created.
      */
-    private CameraView mCameraView;
+    private Camera2View mCameraView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -152,7 +152,7 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
         setContentView(R.layout.localmedia);
         //mTextView = (TextView) findViewById(R.id.localmediaview);
         mSurfaceView = (SurfaceView) findViewById(R.id.localmediaview);
-        mCameraView = (CameraView) findViewById(R.id.cv_aging);
+        mCameraView = (Camera2View) findViewById(R.id.cv_aging);
 
         surfaceHolder = mSurfaceView.getHolder();
         surfaceHolder.addCallback(this);
@@ -192,6 +192,9 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
                     mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     mMediaPlayer.setOnErrorListener(this);
                     localMediaPlay(MediaItem);
+                }
+                if (mCameraView != null) {
+                    mCameraView.cameraReTect();
                 }
             }
         }

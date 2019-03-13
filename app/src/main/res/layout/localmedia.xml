@@ -8,15 +8,16 @@
 	<SurfaceView
 	    android:gravity="center"
 	    android:id="@+id/localmediaview"
+		android:layout_toLeftOf="@id/cv_aging"
 	    android:layout_height="wrap_content"
 	    android:layout_width="wrap_content" >
 	</SurfaceView>
-	<com.fm.factorytest.views.CameraView
+	<com.fm.factorytest.views.Camera2View
         android:id="@+id/cv_aging"
         android:layout_width="400dp"
         android:layout_height="300dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true">
 
-    </com.fm.factorytest.views.CameraView>
+    </com.fm.factorytest.views.Camera2View>
 </RelativeLayout>
