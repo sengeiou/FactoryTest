@@ -139,7 +139,7 @@ public class Camera2View extends LinearLayout implements SurfaceHolder.Callback 
             for (String camera : cameras) {
                 Log.d(TAG, "Factory getCameraIdList id : " + camera);
             }
-        } catch (CameraAccessException e) {
+        } catch (CameraAccessException | SecurityException | IllegalStateException e) {
             e.printStackTrace();
             cameraReTect();
             Log.d(TAG, "Factory getCameraIdList error : " + e.toString());
@@ -177,11 +177,7 @@ public class Camera2View extends LinearLayout implements SurfaceHolder.Callback 
                 showTextInfo("未检测到 Camera 设备");
             }
 
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-            cameraReTect();
-            Log.d(TAG, "openCamera error : " + e.toString());
-        } catch (IllegalArgumentException e) {
+        } catch (CameraAccessException | IllegalArgumentException | SecurityException e) {
             e.printStackTrace();
             cameraReTect();
             Log.d(TAG, "openCamera error : " + e.toString());
@@ -193,11 +189,11 @@ public class Camera2View extends LinearLayout implements SurfaceHolder.Callback 
         if (mSession != null) {
             try {
                 mSession.stopRepeating();
-            } catch (CameraAccessException e) {
+                mSession.close();
+                mSession = null;
+            } catch (CameraAccessException | SecurityException | IllegalStateException e) {
                 e.printStackTrace();
             }
-            mSession.close();
-            mSession = null;
         }
     }
 
@@ -304,12 +300,9 @@ public class Camera2View extends LinearLayout implements SurfaceHolder.Callback 
                                     showTextInfo("Camera 画面捕捉失败");
                                 }
                             }, surfaceView.getHandler());
-                        } catch (IllegalStateException e) {
+                        } catch (IllegalStateException | SecurityException | CameraAccessException e) {
                             mSession = null;
                             Log.e(TAG, e.toString());
-                            cameraReTect();
-                        } catch (CameraAccessException e) {
-                            e.printStackTrace();
                             cameraReTect();
                         }
                     }
@@ -321,10 +314,7 @@ public class Camera2View extends LinearLayout implements SurfaceHolder.Callback 
                         cameraReTect();
                     }
                 }, null);
-            } catch (CameraAccessException e) {
-                e.printStackTrace();
-                cameraReTect();
-            } catch (SecurityException e) {
+            } catch (CameraAccessException | IllegalStateException | SecurityException e) {
                 e.printStackTrace();
                 cameraReTect();
             }
