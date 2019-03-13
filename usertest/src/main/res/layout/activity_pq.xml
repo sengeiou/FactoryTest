@@ -104,7 +104,7 @@
             android:id="@+id/rg_adjust"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:gravity="center|left">
 
             <RadioButton
@@ -119,6 +119,11 @@
                 android:layout_height="wrap_content"
                 android:text="微调" />
         </RadioGroup>
+        <TextView
+            android:id="@+id/tv_cl200_pq_data"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
     </LinearLayout>
 
 

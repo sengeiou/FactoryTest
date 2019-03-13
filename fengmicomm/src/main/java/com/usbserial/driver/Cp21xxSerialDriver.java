@@ -182,6 +182,9 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
             final int numBytesRead;
             synchronized (mReadBufferLock) {
                 int readAmt = Math.min(dest.length, mReadBuffer.length);
+                if (mConnection == null){
+                    return -1;
+                }
                 numBytesRead = mConnection.bulkTransfer(mReadEndpoint, mReadBuffer, readAmt,
                         timeoutMillis);
                 if (numBytesRead < 0) {

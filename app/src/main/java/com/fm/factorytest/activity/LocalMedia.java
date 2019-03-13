@@ -12,31 +12,35 @@ import android.view.SurfaceView;
 import com.fm.factorytest.R;
 import com.fm.factorytest.base.BaseActivity;
 import com.fm.factorytest.global.FactorySetting;
-import com.fm.factorytest.views.CameraView;
+import com.fm.factorytest.views.Camera2View;
 
 import java.io.IOException;
 
 public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
-        MediaPlayer.OnCompletionListener {
+        MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener {
     private static final String TAG = "FactoryLocalMedia";
     private static final String[] MediaSour = {
+            "/data/autovideo_4k2k.mov",
             "/system/factory/autovideo_4k2k.mov",
             "/system/factory/pink_noise_0db.mov",
             "/system/factory/autovideo.mov",
             "/system/factory/autovideo_1080.mov",
     };
+    private static final String DUCK = "duck";
+    private static final String VIDEO4K = "4k2k";
+    private static final String PINKNOISE = "pink";
+
+    //private int source_item = 0;
+    private static final String ICEHOCKEY = "ice";
     private int MediaItem = 0;
     //private TextView mTextView;
     private SurfaceView mSurfaceView;
     private SurfaceHolder surfaceHolder;
-
-    //private int source_item = 0;
-
     private MediaPlayer mMediaPlayer;
     /*
      * Called when the activity is first created.
      */
-    private CameraView mCameraView;
+    private Camera2View mCameraView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -86,18 +90,15 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
             e.printStackTrace();
         }
         //mMediaPlayer.setLooping(true);
+        //设置 prepared 监听
+        mMediaPlayer.setOnPreparedListener(this);
         try {
-            mMediaPlayer.prepare();
+            //异步加载资源，在监听器中 start()
+            mMediaPlayer.prepareAsync();
         } catch (IllegalStateException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
-        mMediaPlayer.start();
-        mMediaPlayer.seekTo(0);
-        mMediaPlayer.setLooping(true);
 
     }
 
@@ -131,11 +132,6 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
         setResult(NON_INNACTIVITYCMD, FAIL);
     }
 
-    private static final String DUCK = "duck";
-    private static final String VIDEO4K = "4k2k";
-    private static final String PINKNOISE = "pink";
-    private static final String ICEHOCKEY = "ice";
-
     public void handleCommand(String cmdid, String param) {
         int i = 0;
         super.handleCommand(cmdid, param);
@@ -156,7 +152,7 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
         setContentView(R.layout.localmedia);
         //mTextView = (TextView) findViewById(R.id.localmediaview);
         mSurfaceView = (SurfaceView) findViewById(R.id.localmediaview);
-        mCameraView = (CameraView) findViewById(R.id.cv_aging);
+        mCameraView = (Camera2View) findViewById(R.id.cv_aging);
 
         surfaceHolder = mSurfaceView.getHolder();
         surfaceHolder.addCallback(this);
@@ -167,6 +163,8 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
         mMediaPlayer = new MediaPlayer();
 
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        mMediaPlayer.setOnErrorListener(this);
     }
 
     public void handleControlMsg(int cmdtype, String cmdid, String cmdpara) {
@@ -178,6 +176,37 @@ public class LocalMedia extends BaseActivity implements SurfaceHolder.Callback,
                 mMediaPlayer = null;
             }
             setResult(cmdid, PASS, true);
+        }
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        if (mp != null) {
+            if (what == MediaPlayer.MEDIA_ERROR_SERVER_DIED) {
+                Log.e(TAG, "media error, server died,we need new media player");
+                if (mMediaPlayer != null) {
+                    mMediaPlayer.stop();
+                    mMediaPlayer.release();
+
+                    mMediaPlayer = new MediaPlayer();
+                    mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                    mMediaPlayer.setOnErrorListener(this);
+                    localMediaPlay(MediaItem);
+                }
+                if (mCameraView != null) {
+                    mCameraView.cameraReTect();
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.start();
+            mMediaPlayer.seekTo(0);
+            mMediaPlayer.setLooping(true);
         }
     }
 }

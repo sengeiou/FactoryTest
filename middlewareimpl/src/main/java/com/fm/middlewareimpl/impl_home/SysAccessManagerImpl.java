@@ -1,4 +1,4 @@
-package com.fm.middlewareimpl.impl;
+package com.fm.middlewareimpl.impl_home;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -13,7 +13,6 @@ import com.fm.middlewareimpl.global.ShellUtil;
 import com.fm.middlewareimpl.interf.SysAccessManagerAbs;
 
 import mitv.internal.TvUtils;
-import mitv.keystone.IKeystoneService;
 import mitv.keystone.KeystoneManager;
 import mitv.keystone.KeystonePoint;
 import mitv.projector.IProjectorService;

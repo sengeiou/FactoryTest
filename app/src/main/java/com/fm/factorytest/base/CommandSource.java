@@ -12,6 +12,8 @@ import com.fm.fengmicomm.usb.USBContext;
 import com.fm.fengmicomm.usb.callback.GlobalCommandReceiveListener;
 import com.fm.fengmicomm.usb.command.CommandRxWrapper;
 import com.fm.fengmicomm.usb.command.CommandTxWrapper;
+import com.fm.fengmicomm.usb.task.CL200CommTask;
+import com.fm.fengmicomm.usb.task.CL200ProtocolTask;
 import com.fm.fengmicomm.usb.task.UsbCommTask;
 import com.fm.fengmicomm.usb.task.UsbProtocolTask;
 
@@ -19,6 +21,9 @@ import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
+import static com.fm.fengmicomm.usb.USBContext.cl200CommTask;
+import static com.fm.fengmicomm.usb.USBContext.cl200ProtocolTask;
+import static com.fm.fengmicomm.usb.USBContext.cl200Usb;
 import static com.fm.fengmicomm.usb.USBContext.usb;
 
 
@@ -34,7 +39,18 @@ public class CommandSource implements GlobalCommandReceiveListener {
             if (action != null && action.equals(FAKE_COMMAN_ACTION)) {
                 String para0 = intent.getStringExtra(FactorySetting.EXTRA_CMDID);
                 String para1 = intent.getStringExtra(FactorySetting.EXTRA_CMDPARA);
-                para1 = stringToAscii(para1);
+                if (para0 != null) {
+                    para0 = para0.toUpperCase();
+                    try {
+                        Integer.parseInt(para0, 16);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, e.toString());
+                        return;
+                    }
+                }
+                if (para1 != null) {
+                    para1 = stringToAscii(para1);
+                }
                 // }
                 Log.i(TAG, "Got FAKE_COMMAN_ACTION, para0 : [ " + para0 + " ], para1 : [" + para1 + " ]");
                 mCmdListener.handleCommand(para0, para1);
@@ -63,6 +79,7 @@ public class CommandSource implements GlobalCommandReceiveListener {
         mCmdListener = listener;
         registerFakeCommand();
 
+        initCL200A(context);
         initUSB(context);
 
         CommandRxWrapper.addGlobalRXListener(this);
@@ -83,7 +100,7 @@ public class CommandSource implements GlobalCommandReceiveListener {
         if (context != null) {
             context.unregisterReceiver(fakeCommandReceiver);
         }
-        usb.destroy();
+        usb.destroy(context);
         usb = null;
     }
 
@@ -104,6 +121,8 @@ public class CommandSource implements GlobalCommandReceiveListener {
                     .setParity(1)
                     .setStopBits(0)
                     .setMaxReadBytes(80)
+                    .setVID(4292)
+                    .setPID(60000)
                     .build();
             usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
                 @Override
@@ -151,9 +170,80 @@ public class CommandSource implements GlobalCommandReceiveListener {
                     Log.d(TAG, "onWriteSuccess");
                 }
             });
-            //调用此方法先触发一次USB检测
-            usb.afterGetUsbPermission(usb.getTargetDevice());
+            if (usb.getTargetDevice() != null) {
+                //调用此方法先触发一次USB检测
+                usb.afterGetUsbPermission(usb.getTargetDevice());
+            }
         }
+    }
+
+    private void initCL200A(Context context) {
+        cl200Usb = new USB.USBBuilder(context)
+                .setBaudRate(9600)
+                .setDataBits(7)
+                .setParity(2)//EVEN
+                .setStopBits(1)
+                .setMaxReadBytes(80)
+                .setVID(1027)
+                .setPID(24577)
+                .build();
+        cl200Usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
+            @Override
+            public void onUsbConnect() {
+                if (cl200ProtocolTask == null) {
+                    cl200ProtocolTask = new CL200ProtocolTask();
+                    cl200ProtocolTask.initTask();
+                    cl200ProtocolTask.start();
+                }
+                if (cl200CommTask == null) {
+                    cl200CommTask = new CL200CommTask();
+                    cl200CommTask.initTask();
+                    cl200CommTask.start();
+                }
+            }
+
+            @Override
+            public void onUsbDisconnect() {
+                if (cl200CommTask != null) {
+                    cl200CommTask.killComm();
+                    cl200CommTask = null;
+                }
+                if (cl200ProtocolTask != null) {
+                    cl200ProtocolTask.killProtocol();
+                    cl200ProtocolTask = null;
+                }
+            }
+
+            @Override
+            public void onUsbConnectFailed() {
+                Log.d(TAG, "onUsbConnectFailed");
+            }
+
+            @Override
+            public void onPermissionGranted() {
+                Log.d(TAG, "onPermissionGranted");
+            }
+
+            @Override
+            public void onPermissionRefused() {
+                Log.d(TAG, "onPermissionRefused");
+            }
+
+            @Override
+            public void onDriverNotSupport() {
+                Log.d(TAG, "onDriverNotSupport");
+            }
+
+            @Override
+            public void onWriteDataFailed(String s) {
+                Log.d(TAG, "onWriteDataFailed == " + s);
+            }
+
+            @Override
+            public void onWriteSuccess(int i) {
+                Log.d(TAG, "onWriteSuccess");
+            }
+        });
     }
 
     @Override
@@ -167,15 +257,18 @@ public class CommandSource implements GlobalCommandReceiveListener {
             }
             P = par.toString();
         }
-        mCmdListener.handleCommand(cmdID,P);
+        //mCmdListener.handleCommand(cmdID, P);
     }
 
     private void killServer() {
-        USBContext.usbCommTask.killComm();
-        USBContext.usbCommTask = null;
-
-        USBContext.usbProtocolTask.killProtocol();
-        USBContext.usbProtocolTask = null;
+        if (USBContext.usbCommTask != null) {
+            USBContext.usbCommTask.killComm();
+            USBContext.usbCommTask = null;
+        }
+        if (USBContext.usbProtocolTask != null) {
+            USBContext.usbProtocolTask.killProtocol();
+            USBContext.usbProtocolTask = null;
+        }
     }
 
     private void startServer() {

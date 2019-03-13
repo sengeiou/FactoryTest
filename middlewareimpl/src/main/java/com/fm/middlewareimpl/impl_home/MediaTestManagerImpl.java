@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.fm.middlewareimpl.impl;
+package com.fm.middlewareimpl.impl_home;
 
 import android.content.Context;
 import android.hardware.hdmi.HdmiControlManager;
