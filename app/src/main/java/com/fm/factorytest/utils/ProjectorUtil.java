@@ -44,4 +44,19 @@ public final class ProjectorUtil {
 
         return version;
     }
+
+    /**
+     * 设置投射方向
+     * @param mode 投射方向，取值范围为: 1为桌面正投，2为桌面背投，3为吊顶正投，4为吊顶背投
+     */
+    public static void setDisplayOrientation(int mode){
+        init();
+        if (projectorService != null){
+            try {
+                projectorService.SetDisplayImageOrientation(mode);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
