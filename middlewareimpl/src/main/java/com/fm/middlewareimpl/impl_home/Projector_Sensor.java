@@ -1,4 +1,4 @@
-package com.fm.middlewareimpl.impl;
+package com.fm.middlewareimpl.impl_home;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.droidlogic.app.KeyManager;

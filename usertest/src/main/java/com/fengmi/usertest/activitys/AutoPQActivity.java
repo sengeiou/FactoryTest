@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,21 +36,21 @@ import static com.fm.fengmicomm.usb.USBContext.cl200Usb;
 
 public class AutoPQActivity extends BaseActivity {
     //L246 标准
-    // private static final String[][] PQ_STANDARD = new String[][]{
-    //         //||    30IRE       ||      70IRE      ||
-    //         //  x     |    y    ||    x   |    y
-    //         {"0.2700", "0.2700", "0.2700", "0.2700"}, //coll
-    //         {"0.2820", "0.2950", "0.2820", "0.2950"}, //normal
-    //         {"0.3100", "0.3250", "0.3100", "0.3250"}, //warm
-    // };
-    //FM05 标准
     private static final String[][] PQ_STANDARD = new String[][]{
             //||    30IRE       ||      70IRE      ||
             //  x     |    y    ||    x   |    y
-            {"0.2750", "0.2750", "0.2750", "0.2750"}, //coll
-            {"0.2900", "0.3100", "0.2900", "0.3100"}, //normal
-            {"0.3150", "0.3250", "0.3150", "0.3250"}, //warm
+            {"0.2700", "0.2700", "0.2700", "0.2700"}, //coll
+            {"0.2820", "0.2950", "0.2820", "0.2950"}, //normal
+            {"0.3100", "0.3250", "0.3100", "0.3250"}, //warm
     };
+    //FM05 标准
+    // private static final String[][] PQ_STANDARD = new String[][]{
+    //         //||    30IRE       ||      70IRE      ||
+    //         //  x     |    y    ||    x   |    y
+    //         {"0.2750", "0.2750", "0.2750", "0.2750"}, //coll
+    //         {"0.2900", "0.3100", "0.2900", "0.3100"}, //normal
+    //         {"0.3150", "0.3250", "0.3150", "0.3250"}, //warm
+    // };
     private static final BigDecimal adjust = new BigDecimal("0.003").setScale(4, RoundingMode.HALF_UP);
     private static final BigDecimal verify = new BigDecimal("0.006").setScale(4, RoundingMode.HALF_UP);
     private static volatile CL200Info cl200Info;
@@ -88,10 +89,29 @@ public class AutoPQActivity extends BaseActivity {
             }
         });
 
+        RadioGroup rgColorTemp = findViewById(R.id.rg_color_temp);
+        rgColorTemp.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                switch (i) {
+                    case R.id.rb_color_cold:
+                        setColorTemp(0);
+                        break;
+                    case R.id.rb_color_normal:
+                        setColorTemp(1);
+                        break;
+                    case R.id.rb_color_warm:
+                        setColorTemp(2);
+                        break;
+                }
+            }
+        });
+
         init(this);
         initCL200A(this);
 
         resetPQ();
+        rgColorTemp.check(R.id.rb_color_cold);
     }
 
     @Override
@@ -134,11 +154,11 @@ public class AutoPQActivity extends BaseActivity {
         });
     }
 
-    public void updateStatus(String status) {
+    public void updateStatus(final String status) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
+                tvStatus.setText(status);
             }
         });
     }
@@ -183,6 +203,7 @@ public class AutoPQActivity extends BaseActivity {
     public void runPQ(View view) {
         if (!pqRunning) {
             if (USBContext.cl200ProtocolTask != null && USBContext.cl200CommTask != null) {
+                pqVerifyTask = new PQVerifyTask();
                 pqVerifyTask.start();
             } else {
                 Toast.makeText(this, "未检测到通讯，请确认 CL200 是否连接", Toast.LENGTH_SHORT).show();
@@ -288,10 +309,12 @@ public class AutoPQActivity extends BaseActivity {
                 for (int i = 0; i < 3; i++) {
                     //切换到 70 IRE
                     switchTo70IRE();
+                    SystemClock.sleep(200);
                     //调整70IRE
                     if (adjust70IRE(colorTemp, 0)) {
                         //切换到 30 IRE
                         switchTo30IRE();
+                        SystemClock.sleep(200);
                         //校验 30 IRE
                         if (verify30IRE(colorTemp, 0)) {
                             Log.d(TAG, "verify30IREChanged " + verify30IREChanged);

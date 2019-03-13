@@ -43,7 +43,33 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
+        android:layout_above="@id/rg_color_temp"
+        android:layout_marginBottom="20dp"
         android:entries="@array/spinner_pic_array" />
+    <RadioGroup
+        android:id="@+id/rg_color_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true">
+
+        <RadioButton
+            android:id="@+id/rb_color_cold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="冷色温" />
+
+        <RadioButton
+            android:id="@+id/rb_color_normal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="标准色温" />
+
+        <RadioButton
+            android:id="@+id/rb_color_warm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="暖色温" />
+    </RadioGroup>
 
 </RelativeLayout>
