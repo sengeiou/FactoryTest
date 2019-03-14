@@ -117,6 +117,12 @@ public class AutoPQActivity extends BaseActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        USBContext.cl200RxDataCallBack = this;
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (cl200Usb != null) {
@@ -312,14 +318,14 @@ public class AutoPQActivity extends BaseActivity {
                 for (int i = 0; i < 3; i++) {
                     //切换到 70 IRE
                     switchTo70IRE();
-                    SystemClock.sleep(200);
+                    SystemClock.sleep(2 * 1000);
                     //调整70IRE
                     if (adjust70IRE(colorTemp, 0)) {
                         //保存70IRE 校准数据
                         saveCl200Value(colorTemp, 70);
                         //切换到 30 IRE
                         switchTo30IRE();
-                        SystemClock.sleep(200);
+                        SystemClock.sleep(2 * 1000);
                         //校验 30 IRE
                         if (verify30IRE(colorTemp, 0)) {
                             Log.d(TAG, "verify30IREChanged " + verify30IREChanged);

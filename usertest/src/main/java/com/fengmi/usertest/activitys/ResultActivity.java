@@ -31,12 +31,12 @@ public class ResultActivity extends BaseActivity {
 
     private String queryPQResult() {
         StringBuilder result = new StringBuilder();
-        result.append(SPUtils.getParam(this, SPUtils.PQ_COLD_30, "null")).append("\n")
-                .append(SPUtils.getParam(this, SPUtils.PQ_COLD_70, "null")).append("\n")
-                .append(SPUtils.getParam(this, SPUtils.PQ_NORMAL_30, "null")).append("\n")
-                .append(SPUtils.getParam(this, SPUtils.PQ_NORMAL_70, "null")).append("\n")
-                .append(SPUtils.getParam(this, SPUtils.PQ_WARM_30, "null")).append("\n")
-                .append(SPUtils.getParam(this, SPUtils.PQ_WARM_70, "null"));
+        result.append("C3:").append(SPUtils.getParam(this, SPUtils.PQ_COLD_30, "null")).append("\n")
+                .append("C7:").append(SPUtils.getParam(this, SPUtils.PQ_COLD_70, "null")).append("\n")
+                .append("N3:").append(SPUtils.getParam(this, SPUtils.PQ_NORMAL_30, "null")).append("\n")
+                .append("N7:").append(SPUtils.getParam(this, SPUtils.PQ_NORMAL_70, "null")).append("\n")
+                .append("W3:").append(SPUtils.getParam(this, SPUtils.PQ_WARM_30, "null")).append("\n")
+                .append("W7:").append(SPUtils.getParam(this, SPUtils.PQ_WARM_70, "null"));
 
         return result.toString();
     }

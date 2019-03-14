@@ -18,7 +18,6 @@ public abstract class BaseActivity extends Activity implements CL200RxDataCallBa
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         ScreenSaverManager manager = ScreenSaverManager.getInstance();
         manager.setScreenSaverEnabled(false);
-        USBContext.cl200RxDataCallBack = this;
     }
 
     @Override
