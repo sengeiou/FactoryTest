@@ -53,6 +53,8 @@ public class Camera2View extends LinearLayout implements SurfaceHolder.Callback 
     private Timer timer = null;
     private UtilManagerAbs mUtilImpl;
 
+    private static volatile boolean usbRework = false;
+
     public Camera2View(Context context) {
         super(context);
         Log.d(TAG, "constructor param 1");
@@ -92,22 +94,38 @@ public class Camera2View extends LinearLayout implements SurfaceHolder.Callback 
     }
 
     private void timerOn() {
-        if (timer == null) {
-            timer = new Timer();
-        }
-        timer.schedule(new TimerTask() {
+        cameraHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                cameraHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        closeCamera();
-                        SystemClock.sleep(2000);
-                        openCamera();
-                    }
-                });
+                closeCamera();
+
+                openCamera();
             }
-        }, 2 * 1000, 30 * 1000);
+        }, 2000);
+        if (timer == null) {
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    cameraHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (usbDetected()) {
+                                showTextInfo("检测到 Camera 连接");
+                                if (usbRework) {
+                                    closeCamera();
+                                    openCamera();
+                                    usbRework = false;
+                                }
+                            } else {
+                                showTextInfo("未检测到 Camera 硬件连接");
+                                cameraReTect();
+                            }
+                        }
+                    });
+                }
+            }, 2000, 10 * 1000);
+        }
     }
 
     private void timerOff() {
@@ -267,6 +285,7 @@ public class Camera2View extends LinearLayout implements SurfaceHolder.Callback 
         mUtilImpl.setGpioOut("LGPIOH_2");
         SystemClock.sleep(1000 * 5);
         mUtilImpl.setGpioOut("HGPIOH_2");
+        usbRework = true;
     }
 
     /**
