@@ -1,1 +1,1 @@
-include ':app', ':middlewareimpl', ':usertest', ':fengmicomm'
+include ':app', ':middlewareimpl', ':usertest', ':fengmicomm', ':libZXing'

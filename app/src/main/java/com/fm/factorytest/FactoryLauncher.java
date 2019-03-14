@@ -12,7 +12,6 @@ import android.media.session.MediaSessionLegacyHelper;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -22,9 +21,6 @@ import com.fm.factorytest.helper.TemperatureHelper;
 import com.fm.factorytest.service.CommandService;
 import com.fm.fengmicomm.usb.USBContext;
 import com.fm.fengmicomm.usb.callback.CL200RxDataCallBack;
-import com.fm.fengmicomm.usb.callback.RxDataCallback;
-import com.fm.fengmicomm.usb.command.CommandRxWrapper;
-import com.fm.fengmicomm.usb.command.CommandTxWrapper;
 import com.fm.middlewareimpl.impl_home.MediaTestManagerImpl;
 import com.fm.middlewareimpl.impl_home.SysAccessManagerImpl;
 import com.fm.middlewareimpl.interf.KeyManagerAbs;
@@ -156,70 +152,70 @@ public class FactoryLauncher extends Activity implements CL200RxDataCallBack {
                 Log.d(TAG, "version = " + sysAbs.readDLPVersion());
                 MediaTestManagerAbs mediaAbs = new MediaTestManagerImpl(this);
                 Log.d(TAG, "cec num = " + mediaAbs.hdmiTestCec(23));
-                if (tvTest01 == null) {
-                    tvTest01 = findViewById(R.id.tv_test_01);
-                    tvTest02 = findViewById(R.id.tv_test_02);
-                    tvTest01.setText("ready");
-                    tvTest02.setText("ready");
-
-                    CommandRxWrapper.addRxDataCallBack("3333", new RxDataCallback() {
-                        int count = 0;
-
-                        @Override
-                        public void notifyDataReceived(final String cmdID, final byte[] data) {
-                            count++;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    tvTest01.setText(new String(data) + " || " + count);
-                                    CommandTxWrapper tx = CommandTxWrapper.initTX("2222", "string trans times = " + count,
-                                            null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
-                                    tx.send();
-                                }
-                            });
-                        }
-                    });
-                    CommandRxWrapper.addRxDataCallBack("4444", new RxDataCallback() {
-                        int count = 0;
-
-                        @Override
-                        public void notifyDataReceived(String cmdID, final byte[] data) {
-                            count++;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    tvTest02.setText(data.length + " || " + count);
-                                    CommandTxWrapper tx = CommandTxWrapper.initTX("1111", "file trans times = " + count,
-                                            null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
-                                    tx.send();
-                                }
-                            });
-                        }
-                    });
-
-                    CommandRxWrapper.addRxDataCallBack("1111", new RxDataCallback() {
-                        @Override
-                        public void notifyDataReceived(String cmdID, final byte[] data) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    tvTest01.setText(new String(data));
-                                }
-                            });
-                        }
-                    });
-                    CommandRxWrapper.addRxDataCallBack("2222", new RxDataCallback() {
-                        @Override
-                        public void notifyDataReceived(String cmdID, final byte[] data) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    tvTest02.setText(new String(data));
-                                }
-                            });
-                        }
-                    });
-                }
+                // if (tvTest01 == null) {
+                //     tvTest01 = findViewById(R.id.tv_test_01);
+                //     tvTest02 = findViewById(R.id.tv_test_02);
+                //     tvTest01.setText("ready");
+                //     tvTest02.setText("ready");
+                //
+                //     CommandRxWrapper.addRxDataCallBack("3333", new RxDataCallback() {
+                //         int count = 0;
+                //
+                //         @Override
+                //         public void notifyDataReceived(final String cmdID, final byte[] data) {
+                //             count++;
+                //             runOnUiThread(new Runnable() {
+                //                 @Override
+                //                 public void run() {
+                //                     tvTest01.setText(new String(data) + " || " + count);
+                //                     CommandTxWrapper tx = CommandTxWrapper.initTX("2222", "string trans times = " + count,
+                //                             null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
+                //                     tx.send();
+                //                 }
+                //             });
+                //         }
+                //     });
+                //     CommandRxWrapper.addRxDataCallBack("4444", new RxDataCallback() {
+                //         int count = 0;
+                //
+                //         @Override
+                //         public void notifyDataReceived(String cmdID, final byte[] data) {
+                //             count++;
+                //             runOnUiThread(new Runnable() {
+                //                 @Override
+                //                 public void run() {
+                //                     tvTest02.setText(data.length + " || " + count);
+                //                     CommandTxWrapper tx = CommandTxWrapper.initTX("1111", "file trans times = " + count,
+                //                             null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
+                //                     tx.send();
+                //                 }
+                //             });
+                //         }
+                //     });
+                //
+                //     CommandRxWrapper.addRxDataCallBack("1111", new RxDataCallback() {
+                //         @Override
+                //         public void notifyDataReceived(String cmdID, final byte[] data) {
+                //             runOnUiThread(new Runnable() {
+                //                 @Override
+                //                 public void run() {
+                //                     tvTest01.setText(new String(data));
+                //                 }
+                //             });
+                //         }
+                //     });
+                //     CommandRxWrapper.addRxDataCallBack("2222", new RxDataCallback() {
+                //         @Override
+                //         public void notifyDataReceived(String cmdID, final byte[] data) {
+                //             runOnUiThread(new Runnable() {
+                //                 @Override
+                //                 public void run() {
+                //                     tvTest02.setText(new String(data));
+                //                 }
+                //             });
+                //         }
+                //     });
+                // }
                 break;
             case 20:
                 break;
@@ -229,27 +225,27 @@ public class FactoryLauncher extends Activity implements CL200RxDataCallBack {
                 break;
             case 24:
                 volUp();
-                new Thread() {
-                    @Override
-                    public void run() {
-                        int count = 0;
-                        while (count <= 1000 * 30) {
-                            CommandTxWrapper tx = CommandTxWrapper.initTX("3333", "ee",
-                                    null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
-                            tx.send();
-
-                            SystemClock.sleep(3000);
-
-                            CommandTxWrapper txWrapper = CommandTxWrapper.initTX("4444", "/persist/hdcp14_key.bin",
-                                    null, CommandTxWrapper.DATA_FILE, USBContext.TYPE_FUNC);
-                            txWrapper.send();
-
-                            SystemClock.sleep(10 * 1000);
-
-                            count++;
-                        }
-                    }
-                }.start();
+                // new Thread() {
+                //     @Override
+                //     public void run() {
+                //         int count = 0;
+                //         while (count <= 1000 * 30) {
+                //             CommandTxWrapper tx = CommandTxWrapper.initTX("3333", "ee",
+                //                     null, CommandTxWrapper.DATA_STRING, USBContext.TYPE_FUNC);
+                //             tx.send();
+                //
+                //             SystemClock.sleep(3000);
+                //
+                //             CommandTxWrapper txWrapper = CommandTxWrapper.initTX("4444", "/persist/hdcp14_key.bin",
+                //                     null, CommandTxWrapper.DATA_FILE, USBContext.TYPE_FUNC);
+                //             txWrapper.send();
+                //
+                //             SystemClock.sleep(10 * 1000);
+                //
+                //             count++;
+                //         }
+                //     }
+                // }.start();
 
                 //String name = keyManagerAbs.aml_key_get_name();
                 //Log.i(TAG, "aml_key_get_name   " + name);

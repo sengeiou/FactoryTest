@@ -1,6 +1,7 @@
 package com.fengmi.usertest.activitys;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fengmi.usertest.R;
+import com.fengmi.usertest.utils.SPUtils;
 import com.fm.fengmicomm.usb.USB;
 import com.fm.fengmicomm.usb.USBContext;
 import com.fm.fengmicomm.usb.task.CL200CommTask;
@@ -159,6 +161,7 @@ public class AutoPQActivity extends BaseActivity {
             @Override
             public void run() {
                 tvStatus.setText(status);
+                startActivity(new Intent(AutoPQActivity.this, ResultActivity.class));
             }
         });
     }
@@ -312,6 +315,8 @@ public class AutoPQActivity extends BaseActivity {
                     SystemClock.sleep(200);
                     //调整70IRE
                     if (adjust70IRE(colorTemp, 0)) {
+                        //保存70IRE 校准数据
+                        saveCl200Value(colorTemp, 70);
                         //切换到 30 IRE
                         switchTo30IRE();
                         SystemClock.sleep(200);
@@ -324,6 +329,8 @@ public class AutoPQActivity extends BaseActivity {
                                 verify30IREChanged = false;
                                 continue;
                             } else {
+                                //保存70IRE 校准数据
+                                saveCl200Value(colorTemp, 30);
                                 pqPass = true;
                                 break;
                             }
@@ -529,6 +536,40 @@ public class AutoPQActivity extends BaseActivity {
                 return cl200Info;
             }
         }
+
+        private void saveCl200Value(int colortemp, int ire) {
+            CL200Info data = readCl200();
+            String key = "";
+            if (ire == 70) {
+                switch (colortemp) {
+                    case 0:
+                        key = SPUtils.PQ_COLD_70;
+                        break;
+                    case 1:
+                        key = SPUtils.PQ_NORMAL_70;
+                        break;
+                    case 2:
+                        key = SPUtils.PQ_WARM_70;
+                        break;
+                }
+            }
+            if (ire == 30) {
+                switch (colortemp) {
+                    case 0:
+                        key = SPUtils.PQ_COLD_30;
+                        break;
+                    case 1:
+                        key = SPUtils.PQ_NORMAL_30;
+                        break;
+                    case 2:
+                        key = SPUtils.PQ_WARM_30;
+                        break;
+                }
+            }
+            if (data != null) {
+                SPUtils.setParam(getApplicationContext(), key, data.getCL200Data());
+            }
+        }
     }
 
     class CL200Info {
@@ -552,6 +593,15 @@ public class AutoPQActivity extends BaseActivity {
                     ", xData=" + xData +
                     ", yData=" + yData +
                     '}';
+        }
+
+        public String getCL200Data() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Ev:").append(evData).append("\n")
+                    .append("x:").append(xData).append("\n")
+                    .append("y:").append(yData);
+
+            return sb.toString();
         }
     }
 

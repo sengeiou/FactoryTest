@@ -257,7 +257,7 @@ public class CommandSource implements GlobalCommandReceiveListener {
             }
             P = par.toString();
         }
-        //mCmdListener.handleCommand(cmdID, P);
+        mCmdListener.handleCommand(cmdID, P);
     }
 
     private void killServer() {
