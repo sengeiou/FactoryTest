@@ -167,7 +167,6 @@ public class AutoPQActivity extends BaseActivity {
             @Override
             public void run() {
                 tvStatus.setText(status);
-                startActivity(new Intent(AutoPQActivity.this, ResultActivity.class));
             }
         });
     }
@@ -296,6 +295,10 @@ public class AutoPQActivity extends BaseActivity {
         }
     }
 
+    public void gotoResult(View view) {
+        startActivity(new Intent(this, ResultActivity.class));
+    }
+
     class PQVerifyTask extends Thread {
         CL200Info temp;
         int check70IRETimes = 0;
@@ -319,6 +322,7 @@ public class AutoPQActivity extends BaseActivity {
                     //切换到 70 IRE
                     switchTo70IRE();
                     SystemClock.sleep(2 * 1000);
+                    updateStatus(colorTemp > 1 ? "暖" : (colorTemp == 1 ? "标准" : "冷") + "色温PQ调整");
                     //调整70IRE
                     if (adjust70IRE(colorTemp, 0)) {
                         //保存70IRE 校准数据

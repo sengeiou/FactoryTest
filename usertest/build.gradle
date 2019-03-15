@@ -51,6 +51,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation project(':fengmicomm')
+    implementation project(':libZXing')
     compileOnly files('/Users/lijie/fm-libs/framework.jar')
     compileOnly files('/Users/lijie/fm-libs/mitvmiddlewareimpl.jar')
     compileOnly files('/Users/lijie/fm-libs/aml-droid.jar')
