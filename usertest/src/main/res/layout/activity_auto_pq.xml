@@ -16,6 +16,7 @@
 
     <Button
         android:id="@+id/btn_pq_run"
+        android:background="@drawable/btn_selector_pq"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -26,7 +27,7 @@
         android:id="@+id/tv_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/btn_pq_run"
         android:layout_centerHorizontal="true"
         android:textSize="18sp" />
 
@@ -71,5 +72,12 @@
             android:layout_height="wrap_content"
             android:text="暖色温" />
     </RadioGroup>
+    <Button
+        android:text="查看结果"
+        android:onClick="gotoResult"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 </RelativeLayout>
