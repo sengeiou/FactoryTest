@@ -361,6 +361,7 @@ public class AutoPQActivity extends BaseActivity {
                 Log.d(TAG, "PQ 调节完成");
                 updateStatus("PQ 调节完成");
             } else {
+                updateStatus("PQ 调节失败");
                 resetPQ();
             }
         }

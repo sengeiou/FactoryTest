@@ -32,7 +32,7 @@ public class AutoFocus extends BaseActivity implements MotorUtil.AFCallback{
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopAF();
+        MotorUtil.unsetEventCallback();
     }
     @Override
     public void onAFStart() {

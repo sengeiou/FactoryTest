@@ -1,12 +1,13 @@
 package com.fm.factorytest.utils;
 
-import android.os.ServiceManager;
 import android.os.IBinder;
-import com.fengmi.IMotorFocusCallback;
-import com.fengmi.MotorStatus;
-import com.fengmi.IMotorFocusService;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.util.Log;
+
+import com.fengmi.IMotorFocusCallback;
+import com.fengmi.IMotorFocusService;
+import com.fengmi.MotorStatus;
 
 public final class MotorUtil{
 	private static volatile IMotorFocusService motorService = null;
@@ -23,6 +24,8 @@ public final class MotorUtil{
         }
         return motorService;
     }
+
+    private static volatile MyCallback callback;
 
     /** 马达正转 **/
     private static final int DIR_NORMAL = 0;
@@ -62,17 +65,36 @@ public final class MotorUtil{
     }
 
 	public static void setEventCallback(AFCallback afc){
-        MyCallback callback = new MyCallback(afc);
-        try {
-            int bc = motorService.setMotorEventCallback(callback);
-            Log.d(TAG,"setMotorEventCallback :: " + bc);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-            Log.d(TAG," RemoteException :: setMotorEventCallback :: " + e.getMessage());
+        if (getMotorService() != null) {
+            callback = new MyCallback(afc);
+            try {
+                int bc = motorService.setMotorEventCallback(callback);
+                Log.d(TAG, "setMotorEventCallback :: " + bc);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+                Log.d(TAG, " RemoteException :: setMotorEventCallback :: " + e.getMessage());
+            }
         }
     }
 
-	private static class MyCallback extends IMotorFocusCallback.Stub{
+    public static void unsetEventCallback() {
+        if (getMotorService() != null) {
+            try {
+                motorService.stopAutoFocus();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            if (callback != null) {
+                try {
+                    motorService.unsetMotorEventCallback(callback);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static class MyCallback extends IMotorFocusCallback.Stub {
 		AFCallback afc = null;
 		public MyCallback(AFCallback afc){
 			this.afc = afc;
