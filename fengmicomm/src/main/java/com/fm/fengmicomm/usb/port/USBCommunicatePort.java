@@ -1,6 +1,6 @@
 package com.fm.fengmicomm.usb.port;
 
-import static com.fm.fengmicomm.usb.USBContext.usb;
+import static com.fm.fengmicomm.usb.USBContext.cp210xUsb;
 
 
 public class USBCommunicatePort extends CommunicatePort {
@@ -24,9 +24,9 @@ public class USBCommunicatePort extends CommunicatePort {
         // }
         // return actual;
         int val = -1;
-        if (usb != null) {
+        if (cp210xUsb != null) {
             byte[] temp = new byte[1024];
-            val = usb.readData(temp, 300);
+            val = cp210xUsb.readData(temp, 300);
             System.arraycopy(temp, 0, recvBuffer, off, len);
         }
         return val;
@@ -35,15 +35,15 @@ public class USBCommunicatePort extends CommunicatePort {
     @Override
     public int readData(byte[] recvBuffer, int timeoutMills) {
         int val = -1;
-        if (usb != null) {
-            val = usb.readData(recvBuffer, timeoutMills);
+        if (cp210xUsb != null) {
+            val = cp210xUsb.readData(recvBuffer, timeoutMills);
         }
         return val;
     }
 
     @Override
     public void writeData(byte[] data) {
-        usb.writeData(data, 300);
+        cp210xUsb.writeData(data, 300);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class USBCommunicatePort extends CommunicatePort {
 
     @Override
     public int dataAvailable() {
-        available = usb.readData(tempData, 300);
+        available = cp210xUsb.readData(tempData, 300);
         return available;
     }
 

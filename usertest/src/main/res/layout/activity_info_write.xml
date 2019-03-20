@@ -64,7 +64,7 @@
             android:layout_weight="7"
             android:imeOptions="actionNext"
             android:inputType="number"
-            android:focusable="false"
+            android:text="19101/"
             android:nextFocusForward="@id/et_manufacture_number" />
     </LinearLayout>
 
@@ -92,7 +92,6 @@
             android:layout_height="match_parent"
             android:digits="@string/mn_str_input_type"
             android:maxLength="17"
-            android:focusable="false"
             android:layout_weight="7" />
     </LinearLayout>
 

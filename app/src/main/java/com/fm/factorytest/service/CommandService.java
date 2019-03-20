@@ -161,7 +161,7 @@ public class CommandService extends BaseCmdService {
     public void handleCommand(String cmdid, String Param) {
         Log.i(TAG, "[CMD] handleCommand cmdid : " + cmdid + " para " + Param);
         if (FactorySetting.COMMAND_PRODUCT_TYPE_TV.equals(cmdid.substring(0, 1))) {
-            Log.i(TAG, "[CMD] TV Command");
+            Log.i(TAG, "[CMD] TV CP210xCommand");
             handleCommandTv(cmdid, Param);
         } else {
             Log.i(TAG, "[CMD] can't find this command");

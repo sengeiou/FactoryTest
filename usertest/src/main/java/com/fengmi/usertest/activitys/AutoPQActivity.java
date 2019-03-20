@@ -339,7 +339,7 @@ public class AutoPQActivity extends BaseActivity {
                                 verify30IREChanged = false;
                                 continue;
                             } else {
-                                //保存70IRE 校准数据
+                                //保存30IRE 校准数据
                                 saveCl200Value(colorTemp, 30);
                                 pqPass = true;
                                 break;

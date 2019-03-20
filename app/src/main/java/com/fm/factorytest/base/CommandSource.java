@@ -14,8 +14,8 @@ import com.fm.fengmicomm.usb.command.CommandRxWrapper;
 import com.fm.fengmicomm.usb.command.CommandTxWrapper;
 import com.fm.fengmicomm.usb.task.CL200CommTask;
 import com.fm.fengmicomm.usb.task.CL200ProtocolTask;
-import com.fm.fengmicomm.usb.task.UsbCommTask;
-import com.fm.fengmicomm.usb.task.UsbProtocolTask;
+import com.fm.fengmicomm.usb.task.CP210xCommTask;
+import com.fm.fengmicomm.usb.task.CP210xProtocolTask;
 
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
@@ -24,7 +24,7 @@ import java.util.Arrays;
 import static com.fm.fengmicomm.usb.USBContext.cl200CommTask;
 import static com.fm.fengmicomm.usb.USBContext.cl200ProtocolTask;
 import static com.fm.fengmicomm.usb.USBContext.cl200Usb;
-import static com.fm.fengmicomm.usb.USBContext.usb;
+import static com.fm.fengmicomm.usb.USBContext.cp210xUsb;
 
 
 /* receive command from remoter, maybe network, broadcast receiver ....*/
@@ -80,7 +80,7 @@ public class CommandSource implements GlobalCommandReceiveListener {
         registerFakeCommand();
 
         initCL200A(context);
-        initUSB(context);
+        initCP210x(context);
 
         CommandRxWrapper.addGlobalRXListener(this);
     }
@@ -100,8 +100,10 @@ public class CommandSource implements GlobalCommandReceiveListener {
         if (context != null) {
             context.unregisterReceiver(fakeCommandReceiver);
         }
-        usb.destroy(context);
-        usb = null;
+        if (cp210xUsb != null) {
+            cp210xUsb.destroy(context);
+            cp210xUsb = null;
+        }
     }
 
     public void sendMsg(String cmdID, byte[] data) {
@@ -113,9 +115,9 @@ public class CommandSource implements GlobalCommandReceiveListener {
     /**
      * 初始化 USB 端口
      */
-    private void initUSB(Context context) {
-        if (usb == null) {
-            usb = new USB.USBBuilder(context)
+    private void initCP210x(Context context) {
+        if (cp210xUsb == null) {
+            cp210xUsb = new USB.USBBuilder(context)
                     .setBaudRate(115200)
                     .setDataBits(8)
                     .setParity(1)
@@ -124,11 +126,11 @@ public class CommandSource implements GlobalCommandReceiveListener {
                     .setVID(4292)
                     .setPID(60000)
                     .build();
-            usb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
+            cp210xUsb.setOnUsbChangeListener(new USB.OnUsbChangeListener() {
                 @Override
                 public void onUsbConnect() {
                     Log.d(TAG, "onUsbConnect");
-                    if (USBContext.usbProtocolTask != null || USBContext.usbCommTask != null) {
+                    if (USBContext.cp210xProtocolTask != null || USBContext.cp210xCommTask != null) {
                         killServer();
                     }
                     startServer();
@@ -170,9 +172,9 @@ public class CommandSource implements GlobalCommandReceiveListener {
                     Log.d(TAG, "onWriteSuccess");
                 }
             });
-            if (usb.getTargetDevice() != null) {
+            if (cp210xUsb.getTargetDevice() != null) {
                 //调用此方法先触发一次USB检测
-                usb.afterGetUsbPermission(usb.getTargetDevice());
+                cp210xUsb.afterGetUsbPermission(cp210xUsb.getTargetDevice());
             }
         }
     }
@@ -261,24 +263,24 @@ public class CommandSource implements GlobalCommandReceiveListener {
     }
 
     private void killServer() {
-        if (USBContext.usbCommTask != null) {
-            USBContext.usbCommTask.killComm();
-            USBContext.usbCommTask = null;
+        if (USBContext.cp210xCommTask != null) {
+            USBContext.cp210xCommTask.killComm();
+            USBContext.cp210xCommTask = null;
         }
-        if (USBContext.usbProtocolTask != null) {
-            USBContext.usbProtocolTask.killProtocol();
-            USBContext.usbProtocolTask = null;
+        if (USBContext.cp210xProtocolTask != null) {
+            USBContext.cp210xProtocolTask.killProtocol();
+            USBContext.cp210xProtocolTask = null;
         }
     }
 
     private void startServer() {
-        USBContext.usbProtocolTask = new UsbProtocolTask();
-        USBContext.usbProtocolTask.taskInit();
-        USBContext.usbProtocolTask.start();
+        USBContext.cp210xProtocolTask = new CP210xProtocolTask();
+        USBContext.cp210xProtocolTask.taskInit();
+        USBContext.cp210xProtocolTask.start();
 
-        USBContext.usbCommTask = new UsbCommTask();
-        USBContext.usbCommTask.taskInit();
-        USBContext.usbCommTask.start();
+        USBContext.cp210xCommTask = new CP210xCommTask();
+        USBContext.cp210xCommTask.initTask();
+        USBContext.cp210xCommTask.start();
     }
 
     public interface OnCommandListener {

@@ -55,7 +55,7 @@ public class CL200Command {
      * <p>
      * 每次接收到一帧数据后，判断数据帧长度
      * 即检测到 STX 和 DELIMITER 的位置来计算总长度，
-     * 再去除 STX、HEAD、Command、Param、ETX、BCC、DELIMITER 的长度
+     * 再去除 STX、HEAD、CP210xCommand、Param、ETX、BCC、DELIMITER 的长度
      * 剩下的为 data 长度
      */
     private byte[] data;
@@ -115,7 +115,7 @@ public class CL200Command {
         if (len >= 14) {
             //Receptor_Head 数据获取
             System.arraycopy(originData, frameStart + 1, cl200.Receptor_Head, 0, 2);
-            //Command 数据获取
+            //CP210xCommand 数据获取
             System.arraycopy(originData, frameStart + 3, cl200.Command, 0, 2);
             //Paramter 数据获取
             System.arraycopy(originData, frameStart + 5, cl200.Paramter, 0, 4);
@@ -167,7 +167,7 @@ public class CL200Command {
         return "CL200Command{" +
                 "STX=" + STX +
                 ", Receptor_Head=" + Arrays.toString(Receptor_Head) +
-                ", Command=" + Arrays.toString(Command) +
+                ", CP210xCommand=" + Arrays.toString(Command) +
                 ", Paramter=" + Arrays.toString(Paramter) +
                 ", data=" + Arrays.toString(data) +
                 ", ETX=" + ETX +

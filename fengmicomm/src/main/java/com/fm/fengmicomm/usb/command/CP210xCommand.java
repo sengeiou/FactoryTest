@@ -13,7 +13,7 @@ import java.util.Arrays;
  * @author lijie
  * @create 2019-01-07 15:01
  **/
-public class Command {
+public class CP210xCommand {
     private byte cmdID_Left;
     private byte cmdID_Right;
     private byte cmdType;
@@ -22,7 +22,7 @@ public class Command {
     private byte cmdNum;
     private byte cmdSum;
 
-    public Command(byte[] origin) {
+    public CP210xCommand(byte[] origin) {
         if ((origin.length >= 9) && origin[0] == (byte) 0x79 && origin[origin.length - 1] == (byte) 0xFE) {
             init(origin[2], origin[3], origin[1], origin[4], null, origin[origin.length - 4], origin[origin.length - 3]);
             if (origin[4] > 0) {
@@ -35,7 +35,7 @@ public class Command {
         }
     }
 
-    public Command(byte cmdID_Left, byte cmdID_Right, byte cmdType, byte dataLen, @Nullable byte[] data, byte cmdNum, byte cmdSum) {
+    public CP210xCommand(byte cmdID_Left, byte cmdID_Right, byte cmdType, byte dataLen, @Nullable byte[] data, byte cmdNum, byte cmdSum) {
         init(cmdID_Left, cmdID_Right, cmdType, dataLen, data, cmdNum, cmdSum);
     }
 
@@ -84,7 +84,7 @@ public class Command {
      * @param cmdID command id
      * @return command
      */
-    public static Command generateACKCMD(boolean isAck, String cmdID) {
+    public static CP210xCommand generateACKCMD(boolean isAck, String cmdID) {
         if (cmdID.length() != 4) {
             throw new IllegalArgumentException("cmd id len != 4, cmdid = " + cmdID);
         }
@@ -104,7 +104,7 @@ public class Command {
         ack[6] = 0x01;
         ack[7] = calCRC(ack);
         ack[8] = (byte) 0xFE;
-        return new Command(ack);
+        return new CP210xCommand(ack);
     }
 
     /**
@@ -131,18 +131,18 @@ public class Command {
         return ack;
     }
 
-    public static Command generateCommandByID(String cmdID) {
+    public static CP210xCommand generateCommandByID(String cmdID) {
         if (cmdID.length() != 4) {
             return null;
         } else {
             byte cmd_left = (byte) Integer.parseInt(cmdID.substring(0, 2), 16);
             byte cmd_right = (byte) Integer.parseInt(cmdID.substring(2, 4), 16);
-            return new Command(cmd_left, cmd_right, USBContext.TYPE_FUNC, (byte) 0, null, (byte) 0, (byte) 1);
+            return new CP210xCommand(cmd_left, cmd_right, USBContext.TYPE_FUNC, (byte) 0, null, (byte) 0, (byte) 1);
         }
     }
 
-    public static Command generateCommandBySource(byte[] data, byte num, byte sum, byte... cmdID) {
-        return new Command(cmdID[0], cmdID[1], USBContext.TYPE_FUNC, (byte) data.length, data, num, sum);
+    public static CP210xCommand generateCommandBySource(byte[] data, byte num, byte sum, byte... cmdID) {
+        return new CP210xCommand(cmdID[0], cmdID[1], USBContext.TYPE_FUNC, (byte) data.length, data, num, sum);
     }
 
     private void init(byte cmdID_Left, byte cmdID_Right, byte cmdType, byte dataLen, @Nullable byte[] data, byte cmdNum, byte cmdSum) {
@@ -219,7 +219,7 @@ public class Command {
 
     @Override
     public String toString() {
-        return "Command{" +
+        return "CP210xCommand{" +
                 "cmdID_Left=" + cmdID_Left +
                 ", cmdID_Right=" + cmdID_Right +
                 ", cmdType=" + cmdType +

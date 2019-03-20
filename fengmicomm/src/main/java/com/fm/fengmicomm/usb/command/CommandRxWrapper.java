@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Command Wrapper
+ * CP210xCommand Wrapper
  *
  * @author lijie
  * @create 2019-01-08 14:50
@@ -23,7 +23,7 @@ public class CommandRxWrapper {
     private static GlobalCommandReceiveListener globalReceiveListener = null;
     private byte[] data;
     private boolean receiving = true;
-    private List<Command> cmdList;
+    private List<CP210xCommand> cmdList;
     private String cmdID;
 
 
@@ -92,7 +92,7 @@ public class CommandRxWrapper {
     }
 
 
-    public void addCommand(Command cmd) {
+    public void addCommand(CP210xCommand cmd) {
         cmdList.add(cmd);
     }
 
@@ -113,8 +113,8 @@ public class CommandRxWrapper {
 
     private void loadCommandData() {
         int len = 0;
-        Map<Integer, Command> map = new HashMap<>();
-        for (Command command : cmdList) {
+        Map<Integer, CP210xCommand> map = new HashMap<>();
+        for (CP210xCommand command : cmdList) {
             map.put((int) command.getCmdNum(), command);
         }
         //判断接受帧数与数据帧数是否一致
@@ -132,7 +132,7 @@ public class CommandRxWrapper {
             int curPos = 0;
 
             for (int i = 0; i < cmdList.size(); i++) {
-                Command cmd = map.get(i);
+                CP210xCommand cmd = map.get(i);
                 if (cmd != null) {
                     temp = cmd.getData();
                     if (temp != null) {

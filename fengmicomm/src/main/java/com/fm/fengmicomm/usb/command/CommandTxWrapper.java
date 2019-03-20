@@ -27,7 +27,7 @@ public class CommandTxWrapper {
     private static CommandTxWrapper txWrapper;
     private byte cmd_left;
     private byte cmd_right;
-    private LinkedList<Command> cmdList;
+    private LinkedList<CP210xCommand> cmdList;
     private byte cmdType;
     private String cmdID;
 
@@ -40,7 +40,7 @@ public class CommandTxWrapper {
         this.cmdType = (byte) cmdType;
 
         if (data == null) {
-            Command cmd = Command.generateCommandByID(cmdID);
+            CP210xCommand cmd = CP210xCommand.generateCommandByID(cmdID);
             cmdList.add(cmd);
         } else {
             switch (dataType) {
@@ -61,7 +61,7 @@ public class CommandTxWrapper {
         cmd_right = (byte) Integer.parseInt(cmdID.substring(2, 4), 16);
         this.cmdType = (byte) cmdType;
         if (data == null) {
-            Command cmd = Command.generateCommandByID(cmdID);
+            CP210xCommand cmd = CP210xCommand.generateCommandByID(cmdID);
             cmdList.add(cmd);
         } else {
             bytesSplit(data);
@@ -75,7 +75,7 @@ public class CommandTxWrapper {
      * @param data     data String 类型，可以是字符串数据，也可以是路径
      * @param datas    字节数组，可以为空，当不为空时，参数data无效
      * @param dataType 数据类型，文件、字节数组、字符串
-     * @param cmdType  Command 类型
+     * @param cmdType  CP210xCommand 类型
      * @return Tx wrapper
      */
     public synchronized static CommandTxWrapper initTX(@NonNull String cmdID,
@@ -99,7 +99,7 @@ public class CommandTxWrapper {
             if (datas == null) {
                 //处理字符串 data 数据
                 if (data == null){
-                    Command cmd = Command.generateCommandByID(cmdID);
+                    CP210xCommand cmd = CP210xCommand.generateCommandByID(cmdID);
                     txWrapper.cmdList.add(cmd);
                 }else {
                     switch (dataType) {
@@ -125,19 +125,19 @@ public class CommandTxWrapper {
             @Override
             public void run() {
                 while (cmdList.size() > 0) {
-                    Command cmd = cmdList.poll();
+                    CP210xCommand cmd = cmdList.poll();
                     if (cmd != null) {
-                        if (USBContext.commandTxQueue != null) {
-                            USBContext.commandTxQueue.add(cmd);
+                        if (USBContext.cp210xTxQueue != null) {
+                            USBContext.cp210xTxQueue.add(cmd);
                             SystemClock.sleep(1000);
                             //重发机制
                             for (int i = 0; i < 3; i++) {
-                                Command ack = USBContext.ackMap.get(cmd.getCommandID());
+                                CP210xCommand ack = USBContext.ackMap.get(cmd.getCommandID());
                                 if (ack != null) {
                                     USBContext.ackMap.remove(cmd.getCommandID());
                                     break;
                                 } else {
-                                    USBContext.commandTxQueue.add(cmd);
+                                    USBContext.cp210xTxQueue.add(cmd);
                                     SystemClock.sleep(1000);
                                 }
                             }
@@ -189,7 +189,7 @@ public class CommandTxWrapper {
                 sum += 1;
             }
             byte[] data;
-            Command cmd;
+            CP210xCommand cmd;
             for (int i = 0; i < sum; i++) {
                 if (i < (sum - 1)) {
                     data = new byte[64];
@@ -198,12 +198,12 @@ public class CommandTxWrapper {
                     data = new byte[suffix];
                     System.arraycopy(datas, (i - 1) * 64, data, 0, suffix);
                 }
-                cmd = Command.generateCommandBySource(data, (byte) i, (byte) sum, cmd_left, cmd_right);
+                cmd = CP210xCommand.generateCommandBySource(data, (byte) i, (byte) sum, cmd_left, cmd_right);
                 cmdList.add(cmd);
             }
 
         } else {
-            Command cmd = Command.generateCommandBySource(datas, (byte) 0, (byte) 1, cmd_left, cmd_right);
+            CP210xCommand cmd = CP210xCommand.generateCommandBySource(datas, (byte) 0, (byte) 1, cmd_left, cmd_right);
             cmdList.add(cmd);
         }
     }

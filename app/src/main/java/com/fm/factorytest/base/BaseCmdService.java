@@ -295,7 +295,7 @@ public class BaseCmdService extends Service implements CommandSource.OnCommandLi
     public void handleCommand(String cmdid, String param) {
     }
 
-    /* ------------- Tv Check Command Status Start---------------*/
+    /* ------------- Tv Check CP210xCommand Status Start---------------*/
     public boolean checkTvWindowStatus() {
         boolean ret = false;
         synchronized (mActivityRunningCmds) {
