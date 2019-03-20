@@ -56,7 +56,7 @@ public class CP210xCommTask extends Thread {
                                     int frameLen = recvBuffer[cmdStart + 4] + 9;
                                     int endPos = cmdStart + frameLen - 1;
                                     //数据帧长度完整，且是合法的数据帧，开始处理
-                                    if (frameLen < recvLen) {
+                                    if (frameLen <= recvLen) {
                                         if (recvBuffer[endPos] == (byte) 0xFE) {
                                             receivedMsg(recvBuffer, cmdStart, frameLen);
                                             recvLen -= frameLen;

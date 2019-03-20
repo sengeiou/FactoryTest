@@ -4,6 +4,7 @@ package com.fm.fengmicomm.usb.command;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.fm.fengmicomm.usb.USBContext;
 
@@ -21,6 +22,7 @@ import java.util.LinkedList;
  * @create 2019-02-21 13:41
  **/
 public class CommandTxWrapper {
+    private static final String TAG = "CommandTxWrapper";
     public static final int DATA_FILE = 0;
     public static final int DATA_STRING = 1;
     public static final int DATA_BYTES = 2;
@@ -127,19 +129,28 @@ public class CommandTxWrapper {
                 while (cmdList.size() > 0) {
                     CP210xCommand cmd = cmdList.poll();
                     if (cmd != null) {
+                        Log.d(TAG, cmd.toString());
                         if (USBContext.cp210xTxQueue != null) {
                             USBContext.cp210xTxQueue.add(cmd);
-                            SystemClock.sleep(1000);
+                            SystemClock.sleep(300);
                             //重发机制
+                            int retry = 0;
                             for (int i = 0; i < 3; i++) {
                                 CP210xCommand ack = USBContext.ackMap.get(cmd.getCommandID());
                                 if (ack != null) {
                                     USBContext.ackMap.remove(cmd.getCommandID());
                                     break;
                                 } else {
+                                    retry++;
                                     USBContext.cp210xTxQueue.add(cmd);
                                     SystemClock.sleep(1000);
                                 }
+                            }
+                            //三次都没有收到回复，取消后续发送
+                            if (retry == 3) {
+                                Log.d(TAG, "we retry " + retry + " times,but we did not received ack back，do we cancel Tx");
+                                cmdList.clear();
+                                break;
                             }
                         }
                     }
